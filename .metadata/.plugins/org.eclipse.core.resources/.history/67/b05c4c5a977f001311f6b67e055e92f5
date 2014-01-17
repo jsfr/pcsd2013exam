@@ -1,0 +1,49 @@
+package com.acertainsupplychain.server;
+
+import java.io.IOException;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.handler.AbstractHandler;
+
+import com.acertainsupplychain.interfaces.OrderManager;
+import com.acertainsupplychain.utils.OrderManagerResponse;
+import com.acertainsupplychain.utils.SupplyChainMessageTag;
+import com.acertainsupplychain.utils.SupplyChainUtility;
+
+public class OrderManagerHTTPMessageHandler extends AbstractHandler {
+
+    public OrderManagerHTTPMessageHandler(OrderManager ordermanager) {
+        // TODO Auto-generated constructor stub
+    }
+
+    @Override
+    public void handle(String target, Request baseRequest,
+            HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
+        String requestURI;
+        SupplyChainMessageTag messageTag;
+        
+        response.setContentType("text/html;charset=utf-8");
+        response.setStatus(HttpServletResponse.SC_OK);
+        requestURI = request.getRequestURI();
+        
+        messageTag = SupplyChainUtility.convertURItoMessageTag(requestURI);
+        
+     // the RequestURI before the switch
+        if (messageTag == null) {
+                System.out.println("Unknown message tag");
+        } else {
+                String xml;
+                OrderManagerResponse bookStoreResponse;
+                // Write requests should not be handled
+                switch (messageTag) {
+                case REGISTERORDER:
+                case GETORDER:
+                }
+    }
+
+}

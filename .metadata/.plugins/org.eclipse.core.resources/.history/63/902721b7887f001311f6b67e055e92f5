@@ -1,0 +1,7 @@
+package com.acertainsupplychain.utils;
+
+public final class SupplyChainConstants {
+    public static final String KEY_ORDERMANGER = "ordermanager";
+    public static final String KEY_SUPPLIERS = "suppliers";
+    public static final String SPLIT_REGEX = ";";
+}

@@ -1,0 +1,5 @@
+package com.acertainsupplychain.interfaces;
+
+public interface MessageTag {
+
+}

@@ -1,0 +1,11 @@
+package com.acertainsupplychain.server;
+
+import com.acertainsupplychain.interfaces.OrderManager;
+
+public class OrderManagerHTTPMessageHandler {
+
+    public OrderManagerHTTPMessageHandler(OrderManager ordermanager) {
+        // TODO Auto-generated constructor stub
+    }
+
+}

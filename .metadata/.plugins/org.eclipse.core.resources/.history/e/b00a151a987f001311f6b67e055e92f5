@@ -1,0 +1,7 @@
+package com.acertainsupplychain.utils;
+
+import com.acertainsupplychain.interfaces.MessageTag;
+
+public enum OrderManagerMessageTag implements MessageTag {
+    REGISTERORDER, GETORDER
+}

@@ -1,0 +1,42 @@
+package com.acertainsupplychain.business;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.acertainsupplychain.exception.InvalidItemException;
+import com.acertainsupplychain.exception.OrderProcessingException;
+import com.acertainsupplychain.interfaces.ItemSupplier;
+
+public class CertainItemSupplier implements ItemSupplier {
+    private static CertainItemSupplier instance;
+    private static Map<Integer, Integer> itemMap;
+    
+    public synchronized static CertainItemSupplier getInstance() {
+        if (instance == null) {
+                instance = new CertainItemSupplier();
+                itemMap = new HashMap<Integer, Integer>();
+        }
+        return instance;
+    }
+    
+    @Override
+    public void executeStep(OrderStep step) throws OrderProcessingException {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public List<ItemQuantity> getOrdersPerItem(Set<Integer> itemIds)
+            throws InvalidItemException {
+        List<ItemQuantity> items = new ArrayList<ItemQuantity>();
+        for (Integer i : itemIds) {
+            try {
+                items.add(itemMap.get(i));
+            } catch (Exception e) {
+                throw new InvalidItemException();
+            }
+        }
+    }
+}

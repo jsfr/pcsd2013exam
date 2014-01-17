@@ -1,5 +1,5 @@
 content_assist_favorite_static_members=
-content_assist_lru_history=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><history maxLHS\="100" maxRHS\="10"><lhs name\="java.lang.Enum"><rhs name\="com.acertainbookstore.lock.MultiGranularityLock$LockType"/></lhs><lhs name\="com.acertainbookstore.lock.MultiGranularityLock$LockType"><rhs name\="com.acertainbookstore.lock.MultiGranularityLock$LockType"/></lhs></history>
+content_assist_lru_history=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><history maxLHS\="100" maxRHS\="10"><lhs name\="java.lang.Enum"><rhs name\="com.acertainbookstore.lock.MultiGranularityLock$LockType"/></lhs><lhs name\="com.acertainbookstore.lock.MultiGranularityLock$LockType"><rhs name\="com.acertainbookstore.lock.MultiGranularityLock$LockType"/></lhs><lhs name\="java.lang.Number"><rhs name\="java.lang.Integer"/></lhs></history>
 content_assist_number_of_computers=13
 content_assist_proposals_background=216,216,216
 content_assist_proposals_foreground=22,22,22

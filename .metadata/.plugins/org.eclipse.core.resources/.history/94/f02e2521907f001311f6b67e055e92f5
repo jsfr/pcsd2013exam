@@ -1,0 +1,60 @@
+package com.acertainsupplychain.business;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.acertainsupplychain.exception.InvalidItemException;
+import com.acertainsupplychain.exception.OrderProcessingException;
+import com.acertainsupplychain.interfaces.ItemSupplier;
+
+public class CertainItemSupplier implements ItemSupplier {
+    private Map<Integer, ItemQuantity> itemMap;
+    private Integer supplierId;
+
+    public CertainItemSupplier(Integer supplierId, Map<Integer, ItemQuantity> itemMap) {
+        this.itemMap = itemMap;
+        this.supplierId = supplierId;
+    }
+
+    @Override
+    public void executeStep(OrderStep step) throws OrderProcessingException {
+        if (step.getSupplierId() == supplierId) {
+            Map<Integer, ItemQuantity> tmp = new HashMap<Integer, ItemQuantity>();
+            synchronized(itemMap) {
+                tmp.putAll(itemMap);
+                for (ItemQuantity i : step.getItems()) {
+                    Integer id = i.getItemId();
+                    if (tmp.containsKey(id)) {
+                        Integer quantity = tmp.get(id).getQuantity() + i.getQuantity();
+                        ItemQuantity item = new ItemQuantity(id, quantity);
+                        tmp.put(id, item);
+                    } else {
+                        throw new OrderProcessingException();
+                    }
+                }
+                itemMap = tmp;
+            }
+        } else {
+            throw new OrderProcessingException();
+        }
+    }
+
+    @Override
+    public List<ItemQuantity> getOrdersPerItem(Set<Integer> itemIds)
+            throws InvalidItemException {
+        List<ItemQuantity> items = new ArrayList<ItemQuantity>();
+        synchronized(itemMap) {
+            for (Integer i : itemIds) {
+                try {
+                    items.add(itemMap.get(i));
+                } catch (Exception e) {
+                    throw new InvalidItemException();
+                }
+            }
+        }
+        return items;
+    }
+}

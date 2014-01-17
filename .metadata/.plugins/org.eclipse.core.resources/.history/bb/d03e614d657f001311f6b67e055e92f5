@@ -1,0 +1,7 @@
+package com.acertainsupplychain.utils;
+
+public final class SupplyChainConstants {
+    public static final String KEY_MASTER = "master";
+    public static final String KEY_SLAVE = "slaves";
+    public static final String SPLIT_SLAVE_REGEX = ";";
+}

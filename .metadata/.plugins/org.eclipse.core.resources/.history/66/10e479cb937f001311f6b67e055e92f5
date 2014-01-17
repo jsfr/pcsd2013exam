@@ -1,0 +1,17 @@
+package com.acertainsupplychain.server;
+
+**
+* Starts the master bookstore HTTP server.
+*/
+public class ItemSupplierHTTPServer {
+           /**
+            * @param args
+            */
+           public static void main(String[] args) {
+                   MasterBookStoreHTTPMessageHandler handler = new MasterBookStoreHTTPMessageHandler();
+                   if (BookStoreHTTPServerUtility.createServer(8081, handler)) {
+                           ;
+                   }
+           }
+
+   }

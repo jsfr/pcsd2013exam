@@ -1,0 +1,8 @@
+CertainOrderManager
+- Fix registering and sending requests to suppliers
+- Figure out how to create a mapping between supplierids and address
+
+General
+- Write HTTP Handler
+- Write HTTP Proxies
+- Write Tests

@@ -12,3 +12,9 @@
 1389803004719	Move compilation unit
 1389803027013	Move compilation unit
 1389803030263	Move compilation unit
+1389968802902	Rename field 'suppliers'
+1389975002909	Rename package 'com.acertainsupplychain.servers'
+1389976863769	Move compilation unit
+1389977043084	Rename type 'OrderManagerMessageTag'
+1389977364205	Rename type 'SupplyChainMessageTag'
+1389977691216	Delete element

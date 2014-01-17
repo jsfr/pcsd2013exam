@@ -1,0 +1,65 @@
+package com.acertainsupplychain.business;
+
+import java.io.FileInputStream;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import com.acertainsupplychain.exception.InvalidWorkflowException;
+import com.acertainsupplychain.exception.OrderProcessingException;
+import com.acertainsupplychain.interfaces.OrderManager;
+import com.acertainsupplychain.utils.SupplyChainConstants;
+
+public class CertainOrderManager implements OrderManager {
+    private static CertainOrderManager instance;
+    private static String filePath = "/home/jens/repos/pcsd2013exam/acertainsupplychain/src/server.properties";
+    private static Map<Integer, List<StepStatus>> workflowMap;
+    private static HashSet<String> suppliers;
+
+    public synchronized static CertainOrderManager getInstance() throws Exception {
+        if (instance == null) {
+            instance = new CertainOrderManager();
+            initializeSupplierMapping();
+            workflowMap = new HashMap<Integer, List<StepStatus>>();
+        }
+        return instance;
+    }
+    
+    private static void initializeSupplierMapping() throws Exception {
+        Properties props = new Properties();
+        suppliers = new HashSet<String>();
+        props.load(new FileInputStream(filePath));
+        String supplierAddresses = props
+                        .getProperty(SupplyChainConstants.KEY_SUPPLIERS);
+        for (String supplier : supplierAddresses
+                        .split(SupplyChainConstants.SPLIT_REGEX)) {
+                if (!supplier.toLowerCase().startsWith("http://")) {
+                        supplier = new String("http://" + supplier);
+                }
+                if (!supplier.endsWith("/")) {
+                        supplier = new String(supplier + "/");
+                }
+
+                suppliers.add(supplier);
+        }
+    }
+    
+    @Override
+    public int registerOrderWorkflow(List<OrderStep> steps)
+            throws OrderProcessingException {
+        
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public List<StepStatus> getOrderWorkflowStatus(int orderWorkflowId)
+            throws InvalidWorkflowException {
+        if (!workflowMap.containsKey(orderWorkflowId)) {
+            throw new InvalidWorkflowException(); 
+        }
+        return workflowMap.get(orderWorkflowId);
+    }
+}
