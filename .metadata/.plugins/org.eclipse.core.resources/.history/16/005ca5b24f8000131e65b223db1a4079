@@ -1,0 +1,24 @@
+package com.acertainsupplychain.utils;
+
+import java.util.List;
+
+import com.acertainsupplychain.interfaces.OrderManager.StepStatus;
+
+public class SupplyChainResult {
+
+    public int getWorkflowId() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    public List<StepStatus> getOrderWorkflowStatus() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public List<?> getDataList() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+}

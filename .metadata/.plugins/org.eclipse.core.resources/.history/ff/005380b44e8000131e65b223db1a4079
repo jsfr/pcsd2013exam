@@ -1,0 +1,10 @@
+package com.acertainsupplychain.utils;
+
+public class SupplyChainResult {
+
+    public int getWorkflowId() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+}

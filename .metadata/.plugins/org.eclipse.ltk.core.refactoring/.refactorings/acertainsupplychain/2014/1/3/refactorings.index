@@ -21,3 +21,9 @@
 1390034250379	Rename compilation unit 'OrderManagerReplicator.java'
 1390036358215	Encapsulate field 'step'
 1390036481390	Encapsulate field 'tag'
+1390053557161	Delete element
+1390053650327	Delete element
+1390053658381	Delete element
+1390056014670	Delete elements
+1390056338610	Extract local variable 'list'
+1390059681054	Delete element

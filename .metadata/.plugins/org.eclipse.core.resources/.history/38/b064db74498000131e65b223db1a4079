@@ -1,0 +1,15 @@
+/**
+ * 
+ * Data Structure that we use to communicate objects and error messages from the
+ * server to the client.
+ * 
+ */
+public class SupplyChainResponse {
+        private OrderProcessingException exception = null;
+        private OrderManagerResult orderManagerResult = null;
+        private ItemSupplierResult supplierResult = null
+
+        public SupplyChainResponse() {
+
+        }
+}

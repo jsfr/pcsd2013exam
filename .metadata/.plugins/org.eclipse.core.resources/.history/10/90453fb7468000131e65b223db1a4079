@@ -1,0 +1,67 @@
+package com.acertainsupplychain.client;
+
+import java.io.FileInputStream;
+import java.util.List;
+import java.util.Properties;
+
+import org.eclipse.jetty.client.ContentExchange;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+
+import com.acertainsupplychain.business.OrderStep;
+import com.acertainsupplychain.exception.InvalidWorkflowException;
+import com.acertainsupplychain.exception.OrderProcessingException;
+import com.acertainsupplychain.interfaces.OrderManager;
+import com.acertainsupplychain.utils.OrderManagerResult;
+import com.acertainsupplychain.utils.SupplyChainConstants;
+import com.acertainsupplychain.utils.SupplyChainUtility;
+
+public class OrderManagerHTTPProxy implements OrderManager {
+    
+    private String serverAddress = null;
+    private String filePath = "/home/jens/repos/pcsd2013exam/acertainsupplychain/src/server.properties";
+    
+    public OrderManagerHTTPProxy() {
+        initializeServerAddress();
+    }
+
+    private void initializeServerAddress() {
+        Properties props = new Properties();
+        props.load(new FileInputStream(filePath));
+        
+        this.serverAddress = props
+                        .getProperty(SupplyChainConstants.KEY_ORDERMANAGER);
+        if (!serverAddress.toLowerCase().startsWith("http://")) {
+                serverAddress = new String("http://" + serverAddress);
+        }
+    }
+
+    @Override
+    public int registerOrderWorkflow(List<OrderStep> steps)
+            throws OrderProcessingException {
+        String listOrderStepsXmlString = SupplyChainUtility.serializeObjectToXMLString(steps);
+        Buffer requestContent = new ByteArrayBuffer(listOrderStepsXmlString);
+
+        OrderManagerResult result = null;
+
+        ContentExchange exchange = new ContentExchange();
+        String urlString = getOrderManagerAddress() + "/"
+                        + BookStoreMessageTag.BUYBOOKS;
+        exchange.setMethod("POST");
+        exchange.setURL(urlString);
+        exchange.setRequestContent(requestContent);
+        result = BookStoreUtility.SendAndRecv(this.client, exchange);
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public List<StepStatus> getOrderWorkflowStatus(int orderWorkflowId)
+            throws InvalidWorkflowException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+}

@@ -1,0 +1,32 @@
+package com.acertainsupplychain.utils;
+
+import java.util.List;
+
+import com.acertainsupplychain.interfaces.OrderManager.StepStatus;
+
+public class SupplyChainResult {
+
+    private List<?> resultList;
+    private int workflowId;
+
+    public SupplyChainResult(List<?> resultList, int workflowId) {
+        this.setResultList(resultList);
+        this.setWorkflowId(workflowId);
+    }
+
+    public List<?> getResultList() {
+        return resultList;
+    }
+
+    public void setResultList(List<?> resultList) {
+        this.resultList = resultList;
+    }
+
+    public long getWorkflowId() {
+        return workflowId;
+    }
+
+    public void setWorkflowId(int workflowId2) {
+        this.workflowId = workflowId2;
+    }
+}

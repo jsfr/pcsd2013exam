@@ -1,0 +1,30 @@
+package com.acertainsupplychain.utils;
+
+import java.util.List;
+
+public class SupplyChainResult {
+
+    private List<?> resultList;
+    private int workflowId;
+
+    public SupplyChainResult(List<?> resultList, int workflowId) {
+        this.setResultList(resultList);
+        this.setWorkflowId(workflowId);
+    }
+
+    public List<?> getResultList() {
+        return resultList;
+    }
+
+    public void setResultList(List<?> resultList) {
+        this.resultList = resultList;
+    }
+
+    public int getWorkflowId() {
+        return workflowId;
+    }
+
+    public void setWorkflowId(int workflowId2) {
+        this.workflowId = workflowId2;
+    }
+}

@@ -1,8 +1,10 @@
 General
-- Write HTTP Handler
-- Write HTTP Proxies
+- Write Logger
 - Write Tests
 - Peform experiment
-- Document code!
-- Write report
-- Write theory part
+- Write report (theory and about programming)
+
+Nice to have
+- Clean up: Refactor and move things like filepaths to ONE place only
+- Clean up: Make sure the correct exceptions are used in all places
+- Document code

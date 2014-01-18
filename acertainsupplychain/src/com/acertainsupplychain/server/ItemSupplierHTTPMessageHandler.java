@@ -1,6 +1,8 @@
 package com.acertainsupplychain.server;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -9,21 +11,27 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
+import com.acertainsupplychain.business.ItemQuantity;
+import com.acertainsupplychain.business.OrderStep;
+import com.acertainsupplychain.exception.OrderProcessingException;
 import com.acertainsupplychain.interfaces.ItemSupplier;
 import com.acertainsupplychain.utils.ItemSupplierMessageTag;
-import com.acertainsupplychain.utils.OrderManagerResponse;
+import com.acertainsupplychain.utils.SupplyChainResponse;
 import com.acertainsupplychain.utils.SupplyChainUtility;
 
 public class ItemSupplierHTTPMessageHandler extends AbstractHandler {
 
+    private ItemSupplier supplier;
+    
     public ItemSupplierHTTPMessageHandler(ItemSupplier supplier) {
-        // TODO Auto-generated constructor stub
+        this.supplier = supplier;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void handle(String target, Request baseRequest,
             HttpServletRequest request, HttpServletResponse response)
-            throws IOException, ServletException {
+                    throws IOException, ServletException {
         String requestURI;
         ItemSupplierMessageTag messageTag;
 
@@ -31,22 +39,37 @@ public class ItemSupplierHTTPMessageHandler extends AbstractHandler {
         response.setStatus(HttpServletResponse.SC_OK);
         requestURI = request.getRequestURI();
 
-        messageTag = SupplyChainUtility
-                .convertURItoItemSupplierMessageTag(requestURI);
+        messageTag = SupplyChainUtility.
+                convertURItoItemSupplierMessageTag(requestURI);
 
         // the RequestURI before the switch
         if (messageTag == null) {
             System.out.println("Unknown message tag");
         } else {
             String xml;
-            OrderManagerResponse orderManagerResponse;
+            SupplyChainResponse supplyChainResponse;
             // Write requests should not be handled
             switch (messageTag) {
-            case GETORDERS:
-                // TODO
-                break;
             case EXECUTESTEP:
-                // TODO
+                xml = SupplyChainUtility.extractPOSTDataFromRequest(request);
+                OrderStep step = (OrderStep) SupplyChainUtility.deserializeXMLStringToObject(xml);
+                supplyChainResponse = new SupplyChainResponse();
+                try {
+                    supplier.executeStep(step);
+                } catch (OrderProcessingException ex) {
+                    supplyChainResponse.setException(ex);
+                }
+                break;
+            case GETORDERS:
+                xml = SupplyChainUtility.extractPOSTDataFromRequest(request);
+                Set<Integer> itemIds = (Set<Integer>) SupplyChainUtility.deserializeXMLStringToObject(xml);
+                supplyChainResponse = new SupplyChainResponse();
+                try {
+                    List<ItemQuantity> itemQuantities = supplier.getOrdersPerItem(itemIds);
+                    supplyChainResponse.setResultList(itemQuantities);
+                } catch (OrderProcessingException ex) {
+                    supplyChainResponse.setException(ex);
+                }
                 break;
             default:
                 System.out.println("Unhandled message tag");

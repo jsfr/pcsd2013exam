@@ -3,35 +3,36 @@
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
 		<item value="279" key="DIALOG_WIDTH"/>
 		<item value="191" key="DIALOG_Y_ORIGIN"/>
-		<item value="359" key="DIALOG_HEIGHT"/>
 		<item value="1264" key="DIALOG_X_ORIGIN"/>
+		<item value="359" key="DIALOG_HEIGHT"/>
 		<item value="1|ubuntu|10.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
 	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="true" key="wrap"/>
-		<item value="false" key="isRegEx"/>
 		<item value="false" key="casesensitive"/>
+		<item value="false" key="isRegEx"/>
 		<item value="false" key="incremental"/>
 		<item value="false" key="wholeword"/>
-		<item value="SupplyChainException" key="selection"/>
+		<item value="OrderStepResult" key="selection"/>
 		<list key="findhistory">
-			<item value="suppliers"/>
-			<item value="BookStoreClientConstants"/>
+			<item value="BookStoreResult"/>
 			<item value="BookStoreException"/>
+			<item value="BookStoreResponse"/>
+			<item value="BookStoreClientConstants"/>
+			<item value="suppliers"/>
 			<item value="slave"/>
 			<item value="fail stop"/>
 			<item value="foo"/>
-			<item value="/Users/rel/Private/PCSD-2013/assignment4/acertainbookstore-4.0/src/server.properties"/>
-			<item value="system.out.println"/>
 		</list>
 		<list key="replacehistory">
+			<item value="OrderStepResult"/>
+			<item value="OrderProcessingException"/>
+			<item value="OrderStepResponse"/>
+			<item value="OrderManagerClientConstants"/>
 			<item value="SupplyChainException"/>
 			<item value="supplier"/>
 			<item value="cs.getS()"/>
 			<item value="cs.getX()"/>
-			<item value=""/>
-			<item value="Stack&lt;Tuple"/>
-			<item value="locks.push"/>
 		</list>
 	</section>
 </section>

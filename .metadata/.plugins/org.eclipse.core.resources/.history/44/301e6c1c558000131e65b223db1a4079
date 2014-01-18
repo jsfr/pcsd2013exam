@@ -1,0 +1,65 @@
+package com.acertainsupplychain.server;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.handler.AbstractHandler;
+
+import com.acertainsupplychain.business.OrderStep;
+import com.acertainsupplychain.interfaces.OrderManager;
+import com.acertainsupplychain.utils.OrderManagerMessageTag;
+import com.acertainsupplychain.utils.SupplyChainResponse;
+import com.acertainsupplychain.utils.SupplyChainUtility;
+
+public class OrderManagerHTTPMessageHandler extends AbstractHandler {
+    private OrderManager ordermanager;
+
+    public OrderManagerHTTPMessageHandler(OrderManager ordermanager) {
+        this.ordermanager = ordermanager;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void handle(String target, Request baseRequest,
+            HttpServletRequest request, HttpServletResponse response)
+                    throws IOException, ServletException {
+        String requestURI;
+        OrderManagerMessageTag messageTag;
+
+        response.setContentType("text/html;charset=utf-8");
+        response.setStatus(HttpServletResponse.SC_OK);
+        requestURI = request.getRequestURI();
+
+        messageTag = SupplyChainUtility
+                .convertURItoOrderManagerMessageTag(requestURI);
+
+        // the RequestURI before the switch
+        if (messageTag == null) {
+            System.out.println("Unknown message tag");
+        } else {
+            String xml;
+            SupplyChainResponse supplyChainResponse;
+            // Write requests should not be handled
+            switch (messageTag) {
+            case REGISTERORDER:
+                xml = SupplyChainUtility.extractPOSTDataFromRequest(request);
+                List<OrderStep> steps = (List<OrderStep>) SupplyChainUtility.deserializeXMLStringToObject(xml);
+                
+                break;
+            case GETORDER:
+                // TODO
+                break;
+            default:
+                System.out.println("Unhandled message tag");
+                break;
+            }
+            // Mark the request as handled so that the HTTP response can be sent
+            baseRequest.setHandled(true);
+        }
+    }
+}

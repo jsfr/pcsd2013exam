@@ -1,0 +1,47 @@
+package com.acertainsupplychain.client;
+
+import java.util.List;
+import java.util.Set;
+
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+
+import com.acertainsupplychain.business.ItemQuantity;
+import com.acertainsupplychain.business.OrderStep;
+import com.acertainsupplychain.exception.InvalidItemException;
+import com.acertainsupplychain.exception.OrderProcessingException;
+import com.acertainsupplychain.interfaces.ItemSupplier;
+
+public class ItemSupplierHTTPProxy implements ItemSupplier {
+    
+    private HttpClient client = null;
+
+    public ItemSupplierHTTPProxy(int supplierId) {
+        initializeServerAddress(supplierId);
+        client  = new HttpClient();
+        client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
+        client.setMaxConnectionsPerAddress(OrderManagerClientConstants.CLIENT_MAX_CONNECTION_ADDRESS);
+        client.setThreadPool(new QueuedThreadPool(OrderManagerClientConstants.CLIENT_MAX_THREADSPOOL_THREADS));
+        client.setTimeout(OrderManagerClientConstants.CLIENT_MAX_TIMEOUT_MILLISECS);
+        client.start();
+    }
+    
+    private void initializeServerAddress(int supplierId) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void executeStep(OrderStep step) throws OrderProcessingException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public List<ItemQuantity> getOrdersPerItem(Set<Integer> itemIds)
+            throws InvalidItemException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+}

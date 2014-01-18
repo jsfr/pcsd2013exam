@@ -1,0 +1,17 @@
+package com.acertainsupplychain.utils;
+
+import com.acertainsupplychain.exception.OrderProcessingException;
+
+public class SupplyChainResponse {
+
+    public OrderProcessingException getException() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public SupplyChainResponse getResult() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+}

@@ -1,0 +1,92 @@
+package com.acertainsupplychain.client;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+
+import org.eclipse.jetty.client.ContentExchange;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+
+import com.acertainsupplychain.business.ItemQuantity;
+import com.acertainsupplychain.business.OrderStep;
+import com.acertainsupplychain.exception.InvalidItemException;
+import com.acertainsupplychain.exception.OrderProcessingException;
+import com.acertainsupplychain.interfaces.ItemSupplier;
+import com.acertainsupplychain.utils.ItemSupplierMessageTag;
+import com.acertainsupplychain.utils.SupplyChainConstants;
+import com.acertainsupplychain.utils.SupplyChainUtility;
+
+public class ItemSupplierHTTPProxy implements ItemSupplier {
+    
+    private HttpClient client = null;
+    private String filePath = "/home/jens/repos/pcsd2013exam/acertainsupplychain/src/server.properties";
+    private String serverAddress = null;
+
+    public ItemSupplierHTTPProxy(int supplierId) throws Exception {
+        initializeServerAddress(supplierId);
+        client  = new HttpClient();
+        client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
+        client.setMaxConnectionsPerAddress(OrderManagerClientConstants.CLIENT_MAX_CONNECTION_ADDRESS);
+        client.setThreadPool(new QueuedThreadPool(OrderManagerClientConstants.CLIENT_MAX_THREADSPOOL_THREADS));
+        client.setTimeout(OrderManagerClientConstants.CLIENT_MAX_TIMEOUT_MILLISECS);
+        client.start();
+    }
+    
+    private void initializeServerAddress(int supplierId) throws FileNotFoundException, IOException {
+        Properties props = new Properties();
+        props.load(new FileInputStream(filePath));
+        String supplierAddresses = props
+                .getProperty(SupplyChainConstants.KEY_SUPPLIERS);
+        for (String s : supplierAddresses
+                .split(SupplyChainConstants.SUPPLIER_SERV_SPLIT_REGEX)) {
+            String[] supplier = s.split(SupplyChainConstants.SUPPLIER_ID_SPLIT_REGEX);
+            if (Integer.valueOf(supplier[0]) == supplierId) {
+                if (!supplier[1].toLowerCase().startsWith("http://")) {
+                    supplier[1] = new String("http://" + supplier[1]);
+                }
+                if (!supplier[1].endsWith("/")) {
+                    supplier[1] = new String(supplier + "/");
+                }
+                this.serverAddress  = supplier[1];
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void executeStep(OrderStep step) throws OrderProcessingException {
+        String orderStepXmlString = SupplyChainUtility.serializeObjectToXMLString(step);
+        Buffer requestContent = new ByteArrayBuffer(orderStepXmlString);
+
+        ContentExchange exchange = new ContentExchange();
+        String urlString = serverAddress + "/"
+                + ItemSupplierMessageTag.EXECUTESTEP;
+        exchange.setMethod("POST");
+        exchange.setURL(urlString);
+        exchange.setRequestContent(requestContent);
+        SupplyChainUtility.SendAndRecv(this.client, exchange);
+    }
+
+    @Override
+    public List<ItemQuantity> getOrdersPerItem(Set<Integer> itemIds)
+            String orderStepXmlString = SupplyChainUtility.serializeObjectToXMLString(step);
+        Buffer requestContent = new ByteArrayBuffer(orderStepXmlString);
+
+        SupplyChainResult result = null;
+        
+        ContentExchange exchange = new ContentExchange();
+        String urlString = serverAddress + "/"
+                + ItemSupplierMessageTag.EXECUTESTEP;
+        exchange.setMethod("POST");
+        exchange.setURL(urlString);
+        exchange.setRequestContent(requestContent);
+        result = (SupplyChainUtility.SendAndRecv(this.client, exchange)).getResult();
+    }
+
+}

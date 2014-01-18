@@ -1,13 +1,15 @@
 package com.acertainsupplychain.utils;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.HttpExchange;
 
-import com.acertainsupplychain.business.OrderStepResult;
 import com.acertainsupplychain.client.OrderManagerClientConstants;
 import com.acertainsupplychain.exception.OrderProcessingException;
 import com.thoughtworks.xstream.XStream;
@@ -80,7 +82,7 @@ public final class SupplyChainUtility {
         return null;
     }
 
-    public static OrderStepResult SendAndRecv(HttpClient client,
+    public static SupplyChainResponse SendAndRecv(HttpClient client,
             ContentExchange exchange) throws OrderProcessingException {
         int exchangeState;
         try {
@@ -100,14 +102,14 @@ public final class SupplyChainUtility {
 
         if (exchangeState == HttpExchange.STATUS_COMPLETED) {
             try {
-                OrderStepResponse bookStoreResponse = (OrderStepResponse) SupplyChainUtility
+                SupplyChainResponse supplyChainResponse = (SupplyChainResponse) SupplyChainUtility
                         .deserializeXMLStringToObject(exchange
                                 .getResponseContent().trim());
-                OrderProcessingException ex = bookStoreResponse.getException();
+                OrderProcessingException ex = supplyChainResponse.getException();
                 if (ex != null) {
                     throw ex;
                 }
-                return bookStoreResponse.getResult();
+                return supplyChainResponse;
 
             } catch (UnsupportedEncodingException ex) {
                 throw new OrderProcessingException(
@@ -124,5 +126,24 @@ public final class SupplyChainUtility {
             throw new OrderProcessingException(
                     OrderManagerClientConstants.strERR_CLIENT_UNKNOWN);
         }
+    }
+
+    /**
+     * Returns the message of the request as a string
+     * 
+     * @param request
+     * @return xml string
+     * @throws IOException
+     */
+    public static String extractPOSTDataFromRequest(HttpServletRequest request)
+            throws IOException {
+        Reader reader = request.getReader();
+        int len = request.getContentLength();
+
+        // Request must be read into a char[] first
+        char res[] = new char[len];
+        reader.read(res);
+        reader.close();
+        return new String(res);
     }
 }

@@ -1,0 +1,43 @@
+package com.acertainsupplychain.utils;
+
+import com.acertainsupplychain.exception.OrderProcessingException;
+
+/**
+ * 
+ * Data Structure that we use to communicate objects and error messages from the
+ * server to the client.
+ * 
+ */
+public class SupplyChainResponse {
+        private OrderProcessingException exception = null;
+        private OrderManagerResult orderManagerResult = null;
+        private ItemSupplierResult supplierResult = null;
+
+        public SupplyChainResponse() {
+
+        }
+        
+        public OrderProcessingException getException() {
+            return exception;
+        }
+
+        public void setException(OrderProcessingException exception) {
+            this.exception = exception;
+        }
+
+        public OrderManagerResult getOrderManagerResult() {
+            return orderManagerResult;
+        }
+
+        public void setOrderManagerResult(OrderManagerResult orderManagerResult) {
+            this.orderManagerResult = orderManagerResult;
+        }
+
+        public ItemSupplierResult getSupplierResult() {
+            return supplierResult;
+        }
+
+        public void setSupplierResult(ItemSupplierResult supplierResult) {
+            this.supplierResult = supplierResult;
+        }
+}
