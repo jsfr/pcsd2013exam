@@ -1,0 +1,21 @@
+package com.acertainsupplychain.business;
+
+public class OrderStepRequest {
+    
+    private OrderStep step;
+    private ItemSupplierMessageTag tag;
+
+    public String getMessageType() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public OrderStep getStep() {
+        return step;
+    }
+
+    public void setStep(OrderStep step) {
+        this.step = step;
+    }
+
+}

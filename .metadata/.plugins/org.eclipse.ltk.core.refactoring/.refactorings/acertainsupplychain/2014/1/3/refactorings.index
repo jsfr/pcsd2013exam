@@ -18,3 +18,6 @@
 1389977043084	Rename type 'OrderManagerMessageTag'
 1389977364205	Rename type 'SupplyChainMessageTag'
 1389977691216	Delete element
+1390034250379	Rename compilation unit 'OrderManagerReplicator.java'
+1390036358215	Encapsulate field 'step'
+1390036481390	Encapsulate field 'tag'

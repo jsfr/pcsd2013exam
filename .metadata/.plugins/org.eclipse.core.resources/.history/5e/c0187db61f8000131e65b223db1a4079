@@ -1,0 +1,10 @@
+package com.acertainsupplychain.business;
+
+public class OrderStepRequest {
+
+    public Object getSupplierId() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+}

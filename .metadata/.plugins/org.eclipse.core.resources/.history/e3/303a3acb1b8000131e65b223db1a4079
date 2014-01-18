@@ -1,0 +1,24 @@
+package com.acertainsupplychain.business;
+
+public class OrderStepExecutor implements Replicator {
+
+    ExecutorService exec;
+
+    public CertainBookStoreReplicator(int maxReplicatorThreads) {
+        exec = Executors.newFixedThreadPool(maxReplicatorThreads);
+    }
+
+    public List<Future<ReplicationResult>> replicate(Set<String> slaveServers,
+            ReplicationRequest request) {
+
+        List<Future<ReplicationResult>> results = new ArrayList<Future<ReplicationResult>>();
+
+        for(String server : slaveServers) {
+            CertainBookStoreReplicationTask task = new CertainBookStoreReplicationTask(server, request);
+            results.add(exec.submit(task));
+        }
+
+        return results;
+    }
+}
+}

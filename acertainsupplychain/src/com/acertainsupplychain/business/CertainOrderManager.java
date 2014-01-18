@@ -12,17 +12,21 @@ import java.util.concurrent.Future;
 import com.acertainsupplychain.exception.InvalidWorkflowException;
 import com.acertainsupplychain.exception.OrderProcessingException;
 import com.acertainsupplychain.interfaces.OrderManager;
+import com.acertainsupplychain.utils.ItemSupplierMessageTag;
 import com.acertainsupplychain.utils.SupplyChainConstants;
 
 public class CertainOrderManager implements OrderManager {
     private static String filePath = "/home/jens/repos/pcsd2013exam/acertainsupplychain/src/server.properties";
-    private Map<Integer, List<StepStatus>> workflowMap;
+    private Map<Integer, List<Future<OrderStepResult>>> workflowMap;
     private HashMap<Integer, String> supplierServers;
-    private int nextWorkflowId;
+    private int workflowId;
+    private OrderStepExecutor executor;
+    private int maxOrderStepThreads = 10;
 
     public CertainOrderManager() {
-        this.workflowMap = new HashMap<Integer, List<StepStatus>>();
-        this.nextWorkflowId = 0;
+        this.workflowMap = new HashMap<Integer, List<Future<OrderStepResult>>>();
+        this.workflowId = 0;
+        this.executor = new OrderStepExecutor(maxOrderStepThreads );
         try {
             initializeSupplierMapping();
         } catch (Exception e) {
@@ -35,52 +39,35 @@ public class CertainOrderManager implements OrderManager {
         this.supplierServers = new HashMap<Integer, String>();
         props.load(new FileInputStream(filePath));
         String supplierAddresses = props
-                        .getProperty(SupplyChainConstants.KEY_SUPPLIERS);
+                .getProperty(SupplyChainConstants.KEY_SUPPLIERS);
         for (String s : supplierAddresses
-                        .split(SupplyChainConstants.SUPPLIER_SERV_SPLIT_REGEX)) {
-                String[] supplier = s.split(SupplyChainConstants.SUPPLIER_ID_SPLIT_REGEX);
-                if (!supplier[1].toLowerCase().startsWith("http://")) {
-                        supplier[1] = new String("http://" + supplier[1]);
-                }
-                if (!supplier[1].endsWith("/")) {
-                        supplier[1] = new String(supplier + "/");
-                }
-                supplierServers.put(Integer.valueOf(supplier[0]) , supplier[1]);
+                .split(SupplyChainConstants.SUPPLIER_SERV_SPLIT_REGEX)) {
+            String[] supplier = s.split(SupplyChainConstants.SUPPLIER_ID_SPLIT_REGEX);
+            if (!supplier[1].toLowerCase().startsWith("http://")) {
+                supplier[1] = new String("http://" + supplier[1]);
+            }
+            if (!supplier[1].endsWith("/")) {
+                supplier[1] = new String(supplier + "/");
+            }
+            supplierServers.put(Integer.valueOf(supplier[0]) , supplier[1]);
         }
     }
-    
-/*    private void waitForSupplierUpdates(
-        List<Future<SupplierResult>> supplierFutures) {
-        List<SupplierResult> supplierServers = new ArrayList<SupplierResult>();
-        for (Future<SupplierResult> supplierServer : supplierFutures) {
-                try {
-                        // block until the future result is available
-                        supplierServers.add(supplierServer.get());
-                } catch (InterruptedException e) {
-                        e.printStackTrace();
-                } catch (ExecutionException e) {
-                        e.printStackTrace();
-                }
-        }
-    
-        for (SupplierResult supplierServer : supplierServers) {
-                if (!supplierServer.isSuccessful()) {
-                        // Remove the server from the list of servers - fail stop model
-                        this.supplierServers.remove(supplierServer.getServerAddress());
-                }
-        }
-    }*/
 
     @Override
     public int registerOrderWorkflow(List<OrderStep> steps)
             throws OrderProcessingException {
-        int workflowId = this.nextWorkflowId;
+        int id = this.workflowId;
+        List<OrderStepRequest> requests = new ArrayList<OrderStepRequest>();
 
-        
-        //TODO
-        
-        this.nextWorkflowId++;
-        return workflowId;
+        for (OrderStep s : steps) {
+            requests.add(new OrderStepRequest(s, ItemSupplierMessageTag.EXECUTESTEP));
+        }
+        List<Future<OrderStepResult>> orderStepFutures =
+                executor.executeWorkflow(supplierServers, requests);
+        workflowMap.put(id, orderStepFutures);
+
+        this.workflowId++;
+        return id;
     }
 
     @Override
@@ -89,6 +76,29 @@ public class CertainOrderManager implements OrderManager {
         if (!workflowMap.containsKey(orderWorkflowId)) {
             throw new InvalidWorkflowException(); 
         }
-        return workflowMap.get(orderWorkflowId);
+
+        List<Future<OrderStepResult>> workflow = this.workflowMap.get(orderWorkflowId);
+        List<StepStatus> results = new ArrayList<StepStatus>();
+
+        for (Future<OrderStepResult> r : workflow) {
+            if (r.isDone()) {
+                try {
+                    OrderStepResult res = r.get();
+                    if (res.getSuccesful()) {
+                        results.add(StepStatus.SUCCESSFUL);
+                    } else {
+                        results.add(StepStatus.FAILED);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                results.add(StepStatus.REGISTERED);
+            }
+        }
+
+        return results;
     }
 }

@@ -1,0 +1,62 @@
+package com.acertainsupplychain.business;
+
+import java.nio.Buffer;
+import java.util.concurrent.Callable;
+
+import org.eclipse.jetty.client.ContentExchange;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+
+import com.acertainsupplychain.utils.SupplyChainUtility;
+
+public class OrderStepTask implements Callable<OrderStepResult> {
+
+    private OrderStepRequest request;
+    private String server;
+    private HttpClient client;
+
+    public OrderStepTask(String server, OrderStepRequest request) {
+        this.server = server;
+        this.request = request;
+        this.client = new HttpClient();
+        
+        client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
+        client.setMaxConnectionsPerAddress(OrderManagerClientConstants.CLIENT_MAX_CONNECTION_ADDRESS);
+        client.setThreadPool(new QueuedThreadPool(
+                OrderManagerClientConstants.CLIENT_MAX_THREADSPOOL_THREADS));
+        client.setTimeout(OrderManagerClientConstants.CLIENT_MAX_TIMEOUT_MILLISECS);
+        
+        try {
+            client.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+@Override
+public OrderStepResult call() throws Exception {
+    String dataSetXmlString = SupplyChainUtility.serializeObjectToXMLString(request.getDataSet());
+
+    Buffer requestContent = new ByteArrayBuffer(dataSetXmlString);
+
+    ContentExchange exchange = new ContentExchange();
+    String urlString = this.server
+            + request.getMessageType();
+
+
+    exchange.setMethod("POST");
+    exchange.setURL(urlString);
+    exchange.setRequestContent(requestContent);
+    OrderStepResult retval = new OrderStepResult(this.server, true);
+
+    try {
+        SupplyChainUtility.SendAndRecv(this.client, exchange);
+    } catch (BookStoreException e) {
+        retval.setSuccessful(false);
+    }
+
+    return retval;
+}
+
+}

@@ -1,5 +1,15 @@
 package com.acertainsupplychain.utils;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
+import org.eclipse.jetty.client.ContentExchange;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.HttpExchange;
+
+import com.acertainsupplychain.business.OrderStepResult;
+import com.acertainsupplychain.client.OrderManagerClientConstants;
+import com.acertainsupplychain.exception.OrderProcessingException;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
 
@@ -11,10 +21,10 @@ public final class SupplyChainUtility {
      * @return
      */
     public static String serializeObjectToXMLString(Object object) {
-            String xmlString;
-            XStream xmlStream = new XStream(new StaxDriver());
-            xmlString = xmlStream.toXML(object);
-            return xmlString;
+        String xmlString;
+        XStream xmlStream = new XStream(new StaxDriver());
+        xmlString = xmlStream.toXML(object);
+        return xmlString;
     }
 
     /**
@@ -24,12 +34,12 @@ public final class SupplyChainUtility {
      * @return
      */
     public static Object deserializeXMLStringToObject(String xmlObject) {
-            Object dataObject = null;
-            XStream xmlStream = new XStream(new StaxDriver());
-            dataObject = xmlStream.fromXML(xmlObject);
-            return dataObject;
+        Object dataObject = null;
+        XStream xmlStream = new XStream(new StaxDriver());
+        dataObject = xmlStream.fromXML(xmlObject);
+        return dataObject;
     }
-    
+
     /**
      * Convert a request URI to the message tags supported
      * 
@@ -38,18 +48,18 @@ public final class SupplyChainUtility {
      */
     public static OrderManagerMessageTag convertURItoOrderManagerMessageTag(String requestURI) {
 
-            try {
-                    OrderManagerMessageTag messageTag = OrderManagerMessageTag
-                                    .valueOf(requestURI.substring(1).toUpperCase());
-                    return messageTag;
-            } catch (IllegalArgumentException ex) {
-                    ; // Enum type matching failed so non supported message
-            } catch (NullPointerException ex) {
-                    ; // RequestURI was empty
-            }
-            return null;
+        try {
+            OrderManagerMessageTag messageTag = OrderManagerMessageTag
+                    .valueOf(requestURI.substring(1).toUpperCase());
+            return messageTag;
+        } catch (IllegalArgumentException ex) {
+            ; // Enum type matching failed so non supported message
+        } catch (NullPointerException ex) {
+            ; // RequestURI was empty
+        }
+        return null;
     }
-    
+
     /**
      * Convert a request URI to the message tags supported
      * 
@@ -58,15 +68,61 @@ public final class SupplyChainUtility {
      */
     public static ItemSupplierMessageTag convertURItoItemSupplierMessageTag(String requestURI) {
 
+        try {
+            ItemSupplierMessageTag messageTag = ItemSupplierMessageTag
+                    .valueOf(requestURI.substring(1).toUpperCase());
+            return messageTag;
+        } catch (IllegalArgumentException ex) {
+            ; // Enum type matching failed so non supported message
+        } catch (NullPointerException ex) {
+            ; // RequestURI was empty
+        }
+        return null;
+    }
+
+    public static OrderStepResult SendAndRecv(HttpClient client,
+            ContentExchange exchange) throws OrderProcessingException {
+        int exchangeState;
+        try {
+            client.send(exchange);
+        } catch (IOException ex) {
+            throw new OrderProcessingException(
+                    OrderManagerClientConstants.strERR_CLIENT_REQUEST_SENDING, ex);
+        }
+
+        try {
+            exchangeState = exchange.waitForDone(); // block until the response
+            // is available
+        } catch (InterruptedException ex) {
+            throw new OrderProcessingException(
+                    OrderManagerClientConstants.strERR_CLIENT_REQUEST_SENDING, ex);
+        }
+
+        if (exchangeState == HttpExchange.STATUS_COMPLETED) {
             try {
-                    ItemSupplierMessageTag messageTag = ItemSupplierMessageTag
-                                    .valueOf(requestURI.substring(1).toUpperCase());
-                    return messageTag;
-            } catch (IllegalArgumentException ex) {
-                    ; // Enum type matching failed so non supported message
-            } catch (NullPointerException ex) {
-                    ; // RequestURI was empty
+                OrderStepResponse bookStoreResponse = (OrderStepResponse) SupplyChainUtility
+                        .deserializeXMLStringToObject(exchange
+                                .getResponseContent().trim());
+                OrderProcessingException ex = bookStoreResponse.getException();
+                if (ex != null) {
+                    throw ex;
+                }
+                return bookStoreResponse.getResult();
+
+            } catch (UnsupportedEncodingException ex) {
+                throw new OrderProcessingException(
+                        OrderManagerClientConstants.strERR_CLIENT_RESPONSE_DECODING,
+                        ex);
             }
-            return null;
+        } else if (exchangeState == HttpExchange.STATUS_EXCEPTED) {
+            throw new OrderProcessingException(
+                    OrderManagerClientConstants.strERR_CLIENT_REQUEST_EXCEPTION);
+        } else if (exchangeState == HttpExchange.STATUS_EXPIRED) {
+            throw new OrderProcessingException(
+                    OrderManagerClientConstants.strERR_CLIENT_REQUEST_TIMEOUT);
+        } else {
+            throw new OrderProcessingException(
+                    OrderManagerClientConstants.strERR_CLIENT_UNKNOWN);
+        }
     }
 }

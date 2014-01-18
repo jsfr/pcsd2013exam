@@ -1,0 +1,37 @@
+package com.acertainsupplychain.utils;
+
+import com.acertainsupplychain.business.OrderStepResult;
+import com.acertainsupplychain.exception.OrderProcessingException;
+
+public class OrderStepResponse {
+
+    private OrderProcessingException exception = null;
+    private OrderStepResult result = null;
+
+    public OrderStepResponse() {
+
+    }
+
+    public BookStoreResponse(BookStoreException exception,
+            BookStoreResult result) {
+        this.setException(exception);
+        this.setResult(result);
+    }
+
+    public BookStoreException getException() {
+        return exception;
+    }
+
+    public void setException(BookStoreException exception) {
+        this.exception = exception;
+    }
+
+    public BookStoreResult getResult() {
+        return result;
+    }
+
+    public void setResult(BookStoreResult result) {
+        this.result = result;
+    }
+
+}

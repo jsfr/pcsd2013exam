@@ -1,0 +1,17 @@
+package com.acertainsupplychain.business;
+
+public class OrderStepResult {
+
+    private String server;
+    private boolean succ;
+
+    public OrderStepResult(String server, boolean b) {
+        this.server = server;
+        this.succ = b;
+    }
+
+    public void setSuccessful(boolean b) {
+        this.succ = b;
+    }
+
+}

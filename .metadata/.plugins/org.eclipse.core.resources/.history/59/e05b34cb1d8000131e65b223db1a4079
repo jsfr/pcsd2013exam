@@ -1,0 +1,9 @@
+package com.acertainsupplychain.business;
+
+public class OrderStepTask {
+
+    public OrderStepTask(String server, OrderStepRequest request) {
+        // TODO Auto-generated constructor stub
+    }
+
+}

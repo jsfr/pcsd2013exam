@@ -1,0 +1,40 @@
+package com.acertainsupplychain.business;
+
+import java.util.concurrent.Callable;
+
+import com.acertainsupplychain.utils.SupplyChainUtility;
+
+public class OrderStepTask implements Callable<OrderStepResult> {
+
+    private Object request;
+
+    public OrderStepTask(String supplier, OrderStepRequest request) {
+        // TODO Auto-generated constructor stub
+    }
+
+    @Override
+    public OrderStepResult call() throws Exception {
+        String dataSetXmlString = SupplyChainUtility.serializeObjectToXMLString(request.getDataSet());
+
+        Buffer requestContent = new ByteArrayBuffer(dataSetXmlString);
+
+        ContentExchange exchange = new ContentExchange();
+        String urlString = this.server
+                + request.getMessageType();
+
+
+        exchange.setMethod("POST");
+        exchange.setURL(urlString);
+        exchange.setRequestContent(requestContent);
+        ReplicationResult retval = new ReplicationResult(this.server, true);
+
+        try {
+            BookStoreUtility.SendAndRecv(this.client, exchange);
+        } catch (BookStoreException e) {
+            retval.setReplicationSuccessful(false);
+        }
+
+        return retval;
+    }
+
+}

@@ -1,0 +1,10 @@
+package com.acertainsupplychain.business;
+
+public class OrderStepResult {
+
+    public void setSuccessful(boolean b) {
+        // TODO Auto-generated method stub
+        
+    }
+
+}
