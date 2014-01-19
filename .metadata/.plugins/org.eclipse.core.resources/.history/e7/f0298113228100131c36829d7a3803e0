@@ -1,0 +1,163 @@
+package com.acertainsupplychain.client.tests;
+
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.acertainsupplychain.business.CertainOrderManager;
+import com.acertainsupplychain.business.ItemQuantity;
+import com.acertainsupplychain.business.OrderStep;
+import com.acertainsupplychain.client.ItemSupplierHTTPProxy;
+import com.acertainsupplychain.client.OrderManagerHTTPProxy;
+import com.acertainsupplychain.exception.OrderProcessingException;
+import com.acertainsupplychain.interfaces.ItemSupplier;
+import com.acertainsupplychain.interfaces.OrderManager;
+import com.acertainsupplychain.interfaces.OrderManager.StepStatus;
+
+public class SupplyChainProxyTest {
+    private static OrderManager ordermanager;
+    private static ItemSupplier supplier0, supplier1;
+    private static int id0 = 0, id1 = 1;
+    private static boolean localTest = false;
+    private static Random r = new Random();
+
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        try {
+            if (localTest) {
+                ordermanager = new CertainOrderManager();
+            } else {
+                ordermanager = new OrderManagerHTTPProxy();
+            }
+            supplier0 = new ItemSupplierHTTPProxy(id0);
+            supplier1 = new ItemSupplierHTTPProxy(id1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testSuccesfulWorkOrder() throws OrderProcessingException {
+        Set<Integer> itemIds0 = new HashSet<Integer>(), itemIds1 = new HashSet<Integer>();
+
+        for (int i = 0; i < 5; i ++) {
+            itemIds0.add(i);
+            itemIds1.add(i+5);
+        }
+
+        List<ItemQuantity> itemsBefore0 = supplier0.getOrdersPerItem(itemIds0);
+        List<ItemQuantity> itemsBefore1 = supplier1.getOrdersPerItem(itemIds1);
+        assertEquals(itemIds0.size(), itemsBefore0.size());
+        assertEquals(itemIds1.size(), itemsBefore1.size());
+
+        Map<Integer, Integer> quantities = new HashMap<Integer, Integer>();
+        for (int i = 0; i < 10; i++) {
+            quantities.put(i, 0);
+        }
+
+        List<OrderStep> workflow = new ArrayList<OrderStep>();
+        for (int i = 0; i < 100; i++) {
+            List<ItemQuantity> items0 = new ArrayList<ItemQuantity>();
+            List<ItemQuantity> items1 = new ArrayList<ItemQuantity>();
+            for (int j = 0; j < 10; j++) {
+                int r0 = r.nextInt(5);
+                int r1 = r.nextInt();
+                items0.add(new ItemQuantity(r0, r1));
+                items1.add(new ItemQuantity(5+r0, r1));
+                quantities.put(r0, quantities.get(r0)+r1);
+                quantities.put(r0+5, quantities.get(r0+5)+r1);
+            }
+            workflow.add(new OrderStep(id0, items0));
+            workflow.add(new OrderStep(id1, items1));
+        }
+
+        int workflowId = ordermanager.registerOrderWorkflow(workflow);
+        List<StepStatus> statusList;
+        do {
+            statusList = ordermanager.getOrderWorkflowStatus(workflowId);
+        } while (statusList.contains(StepStatus.REGISTERED) && !statusList.contains(StepStatus.FAILED));
+        if (statusList.contains(StepStatus.FAILED)) {
+            assertTrue(false);
+        } else {
+            assertTrue(true);
+        }
+
+        List<ItemQuantity> itemsAfter0= supplier0.getOrdersPerItem(itemIds0);
+        List<ItemQuantity> itemsAfter1 = supplier1.getOrdersPerItem(itemIds1);
+        assertEquals(itemIds0.size(), itemsAfter0.size());
+        assertEquals(itemIds1.size(), itemsAfter1.size());
+
+        for (ItemQuantity i : itemsAfter0) {
+            int quantity = itemsBefore0.get(i.getItemId()).getQuantity()
+                    + quantities.get(i.getItemId());
+            assertEquals(i.getQuantity(), quantity);
+        }
+        for (ItemQuantity i : itemsAfter1) {
+            int quantity = itemsBefore1.get(i.getItemId()-5).getQuantity() 
+                    + quantities.get(i.getItemId());
+            assertEquals(i.getQuantity(), quantity);
+        }
+    }
+
+    @Test
+    public void testUnsuccesfulWorkOrder() throws OrderProcessingException {
+        Set<Integer> itemIds0 = new HashSet<Integer>(), itemIds1 = new HashSet<Integer>();
+
+        for (int i = 0; i < 5; i ++) {
+            itemIds0.add(i);
+            itemIds1.add(i+5);
+        }
+
+        List<ItemQuantity> itemsBefore0 = supplier0.getOrdersPerItem(itemIds0);
+        List<ItemQuantity> itemsBefore1 = supplier1.getOrdersPerItem(itemIds1);
+        assertEquals(itemIds0.size(), itemsBefore0.size());
+        assertEquals(itemIds1.size(), itemsBefore1.size());
+
+        List<OrderStep> workflow = new ArrayList<OrderStep>();
+        for (int i = 0; i < 100; i++) {
+            List<ItemQuantity> items0 = new ArrayList<ItemQuantity>();
+            List<ItemQuantity> items1 = new ArrayList<ItemQuantity>();
+            for (int j = 0; j < 10; j++) {
+                int r1 = r.nextInt();
+                items0.add(new ItemQuantity(-1, r1));
+                items1.add(new ItemQuantity(-1, r1));
+            }
+            workflow.add(new OrderStep(id0, items0));
+            workflow.add(new OrderStep(id1, items1));
+        }
+
+        int workflowId = ordermanager.registerOrderWorkflow(workflow);
+        List<StepStatus> statusList;
+        do {
+            statusList = ordermanager.getOrderWorkflowStatus(workflowId);
+        } while (statusList.contains(StepStatus.REGISTERED) && !statusList.contains(StepStatus.SUCCESSFUL));
+        if (statusList.contains(StepStatus.SUCCESSFUL)) {
+            assertTrue(false);
+        } else {
+            assertTrue(true);
+        }
+
+        List<ItemQuantity> itemsAfter0= supplier0.getOrdersPerItem(itemIds0);
+        List<ItemQuantity> itemsAfter1 = supplier1.getOrdersPerItem(itemIds1);
+        assertEquals(itemIds0.size(), itemsAfter0.size());
+        assertEquals(itemIds1.size(), itemsAfter1.size());
+
+        for (ItemQuantity i : itemsAfter0) {
+            int quantity = itemsBefore0.get(i.getItemId()).getQuantity();
+            assertEquals(i.getQuantity(), quantity);
+        }
+        for (ItemQuantity i : itemsAfter1) {
+            int quantity = itemsBefore1.get(i.getItemId()-5).getQuantity();
+            assertEquals(i.getQuantity(), quantity);
+        }
+    }
+}
