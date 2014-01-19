@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,10 +25,13 @@ public class CertainItemSupplier implements ItemSupplier {
     private int supplierId;
     private Logger logger;
     private FileHandler fh;
+    private ReadWriteLock lock;
 
     public CertainItemSupplier(Integer supplierId) {
         this.supplierId = supplierId;
+        this.lock = new ReentrantReadWriteLock();
         this.logger = Logger.getLogger("CertainItemSupplierLog");
+        this.logger.setUseParentHandlers(false);
         try {
             this.fh = new FileHandler("CertainItemSupplier" + this.supplierId + ".log");
             this.logger.addHandler(fh);
@@ -59,27 +64,28 @@ public class CertainItemSupplier implements ItemSupplier {
     public void executeStep(OrderStep step) throws OrderProcessingException {
         if (step.getSupplierId() == supplierId) {
             Map<Integer, ItemQuantity> tmp = new HashMap<Integer, ItemQuantity>();
-            synchronized(this.itemMap) {
-                tmp.putAll(this.itemMap);
-                for (ItemQuantity i : step.getItems()) {
-                    Integer id = i.getItemId();
-                    if (tmp.containsKey(id)) {
-                        Integer quantity = tmp.get(id).getQuantity() + i.getQuantity();
-                        ItemQuantity item = new ItemQuantity(id, quantity);
-                        tmp.put(id, item);
-                    } else {
-                        throw new InvalidItemException();
-                    }
+            this.lock.writeLock().lock();
+            tmp.putAll(this.itemMap);
+            for (ItemQuantity i : step.getItems()) {
+                Integer id = i.getItemId();
+                if (tmp.containsKey(id)) {
+                    Integer quantity = tmp.get(id).getQuantity() + i.getQuantity();
+                    ItemQuantity item = new ItemQuantity(id, quantity);
+                    tmp.put(id, item);
+                } else {
+                    this.lock.writeLock().unlock();
+                    throw new InvalidItemException();
                 }
-
-                logger.log(Level.INFO, "STEP");
-                for (ItemQuantity i : step.getItems()) {
-                    logger.log(Level.INFO, "ITEM " + i.getItemId() + " " + i.getQuantity());
-                }
-                fh.flush();
-
-                this.itemMap = tmp;
             }
+
+            logger.log(Level.INFO, "STEP");
+            for (ItemQuantity i : step.getItems()) {
+                logger.log(Level.INFO, "ITEM " + i.getItemId() + " " + i.getQuantity());
+            }
+            fh.flush();
+
+            this.itemMap = tmp;
+            this.lock.writeLock().unlock();
         } else {
             throw new OrderProcessingException();
         }
@@ -89,15 +95,16 @@ public class CertainItemSupplier implements ItemSupplier {
     public List<ItemQuantity> getOrdersPerItem(Set<Integer> itemIds)
             throws InvalidItemException {
         List<ItemQuantity> items = new ArrayList<ItemQuantity>();
-        synchronized(itemMap) {
-            for (Integer i : itemIds) {
-                if (itemMap.containsKey(i)) {
-                    items.add(itemMap.get(i));
-                } else {
-                    throw new InvalidItemException();
-                }
+        this.lock.readLock().lock();
+        for (Integer i : itemIds) {
+            if (itemMap.containsKey(i)) {
+                items.add(itemMap.get(i));
+            } else {
+                this.lock.readLock().unlock();
+                throw new InvalidItemException();
             }
         }
+        this.lock.readLock().unlock();
         return items;
     }
 }

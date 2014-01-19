@@ -35,6 +35,7 @@ public class CertainOrderManager implements OrderManager {
         this.workflowId = 0;
         this.executor = new OrderStepExecutor(maxOrderStepThreads );
         this.logger = Logger.getLogger("CertainOrderManagerLog");
+        this.logger.setUseParentHandlers(false);
         try {
             this.fh = new FileHandler("CertainOrdermanager" + managerId + ".log");
             this.logger.addHandler(fh);
@@ -66,7 +67,7 @@ public class CertainOrderManager implements OrderManager {
     }
 
     @Override
-    public int registerOrderWorkflow(List<OrderStep> steps)
+    public synchronized int registerOrderWorkflow(List<OrderStep> steps)
             throws OrderProcessingException {
         int id = this.workflowId;
         List<OrderStepRequest> requests = new ArrayList<OrderStepRequest>();
@@ -97,7 +98,7 @@ public class CertainOrderManager implements OrderManager {
     }
 
     @Override
-    public List<StepStatus> getOrderWorkflowStatus(int orderWorkflowId)
+    public synchronized List<StepStatus> getOrderWorkflowStatus(int orderWorkflowId)
             throws InvalidWorkflowException {
         if (!workflowMap.containsKey(orderWorkflowId)) {
             throw new InvalidWorkflowException(); 
