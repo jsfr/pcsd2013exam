@@ -38,7 +38,7 @@ public class ItemSupplierHTTPMessageHandler extends AbstractHandler {
         response.setContentType("text/html;charset=utf-8");
         response.setStatus(HttpServletResponse.SC_OK);
         requestURI = request.getRequestURI();
-
+        System.out.println(requestURI);
         messageTag = SupplyChainUtility.
                 convertURItoItemSupplierMessageTag(requestURI);
 
@@ -59,6 +59,7 @@ public class ItemSupplierHTTPMessageHandler extends AbstractHandler {
                 } catch (OrderProcessingException ex) {
                     supplyChainResponse.setException(ex);
                 }
+                response.getWriter().println(SupplyChainUtility.serializeObjectToXMLString(supplyChainResponse));
                 break;
             case GETORDERS:
                 xml = SupplyChainUtility.extractPOSTDataFromRequest(request);
@@ -70,6 +71,7 @@ public class ItemSupplierHTTPMessageHandler extends AbstractHandler {
                 } catch (OrderProcessingException ex) {
                     supplyChainResponse.setException(ex);
                 }
+                response.getWriter().println(SupplyChainUtility.serializeObjectToXMLString(supplyChainResponse));
                 break;
             default:
                 System.out.println("Unhandled message tag");

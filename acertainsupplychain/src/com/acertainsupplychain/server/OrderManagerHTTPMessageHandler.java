@@ -59,6 +59,7 @@ public class OrderManagerHTTPMessageHandler extends AbstractHandler {
                 } catch (OrderProcessingException ex) {
                     supplyChainResponse.setException(ex);
                 }
+                response.getWriter().println(SupplyChainUtility.serializeObjectToXMLString(supplyChainResponse));
                 break;
             case GETORDER:
                 xml = SupplyChainUtility.extractPOSTDataFromRequest(request);
@@ -70,6 +71,7 @@ public class OrderManagerHTTPMessageHandler extends AbstractHandler {
                 } catch (OrderProcessingException ex) {
                     supplyChainResponse.setException(ex);
                 }
+                response.getWriter().println(SupplyChainUtility.serializeObjectToXMLString(supplyChainResponse));
                 break;
             default:
                 System.out.println("Unhandled message tag");

@@ -1,0 +1,67 @@
+package com.acertainsupplychain.client.tests;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.acertainsupplychain.business.CertainItemSupplier;
+import com.acertainsupplychain.business.ItemQuantity;
+import com.acertainsupplychain.business.OrderStep;
+import com.acertainsupplychain.client.ItemSupplierHTTPProxy;
+import com.acertainsupplychain.exception.OrderProcessingException;
+import com.acertainsupplychain.exception.InvalidItemException;
+import com.acertainsupplychain.interfaces.ItemSupplier;
+
+public class ItemSupplierTest {
+    private static ItemSupplier client;
+    private static boolean localTest = true;
+    private static int id = 0;
+
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        try {
+            if (localTest) {
+                client = new CertainItemSupplier(id);
+            } else {
+                client = new ItemSupplierHTTPProxy(id);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test(expected=OrderProcessingException.class)
+    public void testExecuteStepWrongSupplierId() throws OrderProcessingException {
+        OrderStep step = new OrderStep(id+1, new ArrayList<ItemQuantity>());
+        client.executeStep(step);
+    }
+
+    @Test(expected=InvalidItemException.class)
+    public void testExecuteStepInvalidItemId() throws OrderProcessingException {
+        // This assumes that no item with id = -1 exist
+        ItemQuantity itemWithInvalidId = new ItemQuantity(-1, 1);
+        List<ItemQuantity> items = new ArrayList<ItemQuantity>();
+        items.add(itemWithInvalidId);
+        OrderStep step = new OrderStep(id, items);
+        client.executeStep(step);
+    }
+
+    @Test
+    public void testExecuteStep() throws OrderProcessingException {
+        List<ItemQuantity> items = new ArrayList<ItemQuantity>();
+        Random r = new Random();
+        for (int i = 0; i < 100; i++) {
+            items.add(new ItemQuantity(r.nextInt(), r.nextInt()));
+        }
+        OrderStep step = new OrderStep(id, items);
+        client.executeStep(step);
+    }
+
+    /*@Test
+    public void testGetOrdersPerItem() {
+
+    }*/
+}

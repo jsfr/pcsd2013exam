@@ -8,7 +8,7 @@ import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
-import com.acertainsupplychain.client.OrderManagerClientConstants;
+import com.acertainsupplychain.client.SupplyChainClientConstants;
 import com.acertainsupplychain.exception.OrderProcessingException;
 import com.acertainsupplychain.utils.SupplyChainUtility;
 
@@ -24,10 +24,10 @@ public class OrderStepTask implements Callable<OrderStepResult> {
         this.client = new HttpClient();
 
         client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
-        client.setMaxConnectionsPerAddress(OrderManagerClientConstants.CLIENT_MAX_CONNECTION_ADDRESS);
+        client.setMaxConnectionsPerAddress(SupplyChainClientConstants.CLIENT_MAX_CONNECTION_ADDRESS);
         client.setThreadPool(new QueuedThreadPool(
-                OrderManagerClientConstants.CLIENT_MAX_THREADSPOOL_THREADS));
-        client.setTimeout(OrderManagerClientConstants.CLIENT_MAX_TIMEOUT_MILLISECS);
+                SupplyChainClientConstants.CLIENT_MAX_THREADSPOOL_THREADS));
+        client.setTimeout(SupplyChainClientConstants.CLIENT_MAX_TIMEOUT_MILLISECS);
 
         try {
             client.start();

@@ -15,6 +15,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import com.acertainsupplychain.business.ItemQuantity;
 import com.acertainsupplychain.business.OrderStep;
+import com.acertainsupplychain.exception.InvalidItemException;
 import com.acertainsupplychain.exception.OrderProcessingException;
 import com.acertainsupplychain.interfaces.ItemSupplier;
 import com.acertainsupplychain.utils.ItemSupplierMessageTag;
@@ -32,9 +33,9 @@ public class ItemSupplierHTTPProxy implements ItemSupplier {
         initializeServerAddress(supplierId);
         client  = new HttpClient();
         client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
-        client.setMaxConnectionsPerAddress(OrderManagerClientConstants.CLIENT_MAX_CONNECTION_ADDRESS);
-        client.setThreadPool(new QueuedThreadPool(OrderManagerClientConstants.CLIENT_MAX_THREADSPOOL_THREADS));
-        client.setTimeout(OrderManagerClientConstants.CLIENT_MAX_TIMEOUT_MILLISECS);
+        client.setMaxConnectionsPerAddress(SupplyChainClientConstants.CLIENT_MAX_CONNECTION_ADDRESS);
+        client.setThreadPool(new QueuedThreadPool(SupplyChainClientConstants.CLIENT_MAX_THREADSPOOL_THREADS));
+        client.setTimeout(SupplyChainClientConstants.CLIENT_MAX_TIMEOUT_MILLISECS);
         client.start();
     }
 
@@ -51,7 +52,7 @@ public class ItemSupplierHTTPProxy implements ItemSupplier {
                     supplier[1] = new String("http://" + supplier[1]);
                 }
                 if (!supplier[1].endsWith("/")) {
-                    supplier[1] = new String(supplier + "/");
+                    supplier[1] = new String(supplier[1] + "/");
                 }
                 this.serverAddress  = supplier[1];
                 break;
@@ -65,7 +66,7 @@ public class ItemSupplierHTTPProxy implements ItemSupplier {
         Buffer requestContent = new ByteArrayBuffer(orderStepXmlString);
 
         ContentExchange exchange = new ContentExchange();
-        String urlString = serverAddress + "/"
+        String urlString = serverAddress
                 + ItemSupplierMessageTag.EXECUTESTEP;
         exchange.setMethod("POST");
         exchange.setURL(urlString);
@@ -75,14 +76,14 @@ public class ItemSupplierHTTPProxy implements ItemSupplier {
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<ItemQuantity> getOrdersPerItem(Set<Integer> itemIds) {
+    public List<ItemQuantity> getOrdersPerItem(Set<Integer> itemIds) throws InvalidItemException {
         String itemIdsXmlString = SupplyChainUtility.serializeObjectToXMLString(itemIds);
         Buffer requestContent = new ByteArrayBuffer(itemIdsXmlString);
 
         SupplyChainResponse result = null;
 
         ContentExchange exchange = new ContentExchange();
-        String urlString = serverAddress + "/"
+        String urlString = serverAddress
                 + ItemSupplierMessageTag.GETORDERS;
         exchange.setMethod("POST");
         exchange.setURL(urlString);
@@ -90,10 +91,8 @@ public class ItemSupplierHTTPProxy implements ItemSupplier {
         try {
             result = SupplyChainUtility.SendAndRecv(this.client, exchange);
         } catch (OrderProcessingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw (InvalidItemException) e;
         }
-
         return (List<ItemQuantity>) result.getResultList();
     }
 

@@ -14,7 +14,7 @@ public class ItemSupplierHTTPServer {
    public static void main(String[] args) {
            ItemSupplier supplier = new CertainItemSupplier(Integer.valueOf(args[0]));
            ItemSupplierHTTPMessageHandler handler = new ItemSupplierHTTPMessageHandler(supplier);
-           if (SupplyChainHTTPServerUtility.createServer(8081, handler)) {
+           if (SupplyChainHTTPServerUtility.createServer(Integer.valueOf(args[1]), handler)) {
                    ;
            }
    }

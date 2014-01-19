@@ -16,7 +16,7 @@ import com.acertainsupplychain.utils.SupplyChainConstants;
 public class CertainItemSupplier implements ItemSupplier {
     private static String filePath = "/home/jens/repos/pcsd2013exam/acertainsupplychain/src/server.properties";
     private Map<Integer, ItemQuantity> itemMap;
-    private Integer supplierId;
+    private int supplierId;
 
     public CertainItemSupplier(Integer supplierId) {
         this.supplierId = supplierId;
@@ -35,7 +35,7 @@ public class CertainItemSupplier implements ItemSupplier {
                         .getProperty(SupplyChainConstants.KEY_ITEMS);
         for (String s : suppliers.split(SupplyChainConstants.SUPPLIER_SERV_SPLIT_REGEX)) {
             String[] idAndItems = s.split(SupplyChainConstants.SUPPLIER_ID_SPLIT_REGEX);
-            if (this.supplierId.equals(idAndItems[0])) {
+            if (this.supplierId == Integer.valueOf(idAndItems[0])) {
                 for (String i : idAndItems[1].split(SupplyChainConstants.SUPPLIER_ITEM_SPLIT_REGEX)) {
                     Integer id = Integer.valueOf(i);
                     this.itemMap.put(id, new ItemQuantity(id, 0));
@@ -57,7 +57,7 @@ public class CertainItemSupplier implements ItemSupplier {
                         ItemQuantity item = new ItemQuantity(id, quantity);
                         tmp.put(id, item);
                     } else {
-                        throw new OrderProcessingException();
+                        throw new InvalidItemException();
                     }
                 }
                 itemMap = tmp;
@@ -73,9 +73,9 @@ public class CertainItemSupplier implements ItemSupplier {
         List<ItemQuantity> items = new ArrayList<ItemQuantity>();
         synchronized(itemMap) {
             for (Integer i : itemIds) {
-                try {
+                if (itemMap.containsKey(i)) {
                     items.add(itemMap.get(i));
-                } catch (Exception e) {
+                } else {
                     throw new InvalidItemException();
                 }
             }

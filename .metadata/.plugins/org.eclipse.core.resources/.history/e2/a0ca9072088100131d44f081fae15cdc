@@ -1,0 +1,44 @@
+package com.acertainsupplychain.client.tests;
+
+import java.util.Random;
+
+import org.junit.BeforeClass;
+
+import com.acertainsupplychain.business.CertainOrderManager;
+import com.acertainsupplychain.client.ItemSupplierHTTPProxy;
+import com.acertainsupplychain.client.OrderManagerHTTPProxy;
+import com.acertainsupplychain.interfaces.ItemSupplier;
+import com.acertainsupplychain.interfaces.OrderManager;
+
+public class SupplyChainProxyTest {
+    private static OrderManager ordermanager;
+    private static ItemSupplier supplier0, supplier1;
+    private static int id0 = 0, id1 = 1;
+    private static boolean localTest = true;
+    private static Random r = new Random();
+
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        try {
+            if (localTest) {
+                ordermanager = new CertainOrderManager();
+            } else {
+                ordermanager = new OrderManagerHTTPProxy();
+            }
+            supplier0 = new ItemSupplierHTTPProxy(id0);
+            supplier1 = new ItemSupplierHTTPProxy(id1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    @Test
+    public void testSuccesfulWorkOrder() {
+        
+    }
+    
+    @Test
+    public void testUnsuccesfulWorkOrder() {
+        
+    }
+}

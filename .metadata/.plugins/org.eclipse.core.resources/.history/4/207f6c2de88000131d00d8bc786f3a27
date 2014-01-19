@@ -1,0 +1,87 @@
+package com.acertainsupplychain.business;
+
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import com.acertainsupplychain.exception.InvalidItemException;
+import com.acertainsupplychain.exception.OrderProcessingException;
+import com.acertainsupplychain.interfaces.ItemSupplier;
+import com.acertainsupplychain.utils.SupplyChainConstants;
+
+public class CertainItemSupplier implements ItemSupplier {
+    private static String filePath = "/home/jens/repos/pcsd2013exam/acertainsupplychain/src/server.properties";
+    private Map<Integer, ItemQuantity> itemMap;
+    private Integer supplierId;
+
+    public CertainItemSupplier(Integer supplierId) {
+        this.supplierId = supplierId;
+        try {
+            initializeItemMap();
+            System.out.println(supplierId);
+            System.out.print(itemMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void initializeItemMap() throws Exception {
+        Properties props = new Properties();
+        this.itemMap = new HashMap<Integer, ItemQuantity>();
+        props.load(new FileInputStream(filePath));
+        String suppliers = props
+                        .getProperty(SupplyChainConstants.KEY_ITEMS);
+        for (String s : suppliers.split(SupplyChainConstants.SUPPLIER_SERV_SPLIT_REGEX)) {
+            String[] idAndItems = s.split(SupplyChainConstants.SUPPLIER_ID_SPLIT_REGEX);
+            if (this.supplierId.equals(idAndItems[0])) {
+                for (String i : idAndItems[1].split(SupplyChainConstants.SUPPLIER_ITEM_SPLIT_REGEX)) {
+                    Integer id = Integer.valueOf(i);
+                    this.itemMap.put(id, new ItemQuantity(id, 0));
+                }
+            }
+        }
+    }
+
+    @Override
+    public void executeStep(OrderStep step) throws OrderProcessingException {
+        if (step.getSupplierId() == supplierId) {
+            Map<Integer, ItemQuantity> tmp = new HashMap<Integer, ItemQuantity>();
+            synchronized(itemMap) {
+                tmp.putAll(itemMap);
+                for (ItemQuantity i : step.getItems()) {
+                    Integer id = i.getItemId();
+                    if (tmp.containsKey(id)) {
+                        Integer quantity = tmp.get(id).getQuantity() + i.getQuantity();
+                        ItemQuantity item = new ItemQuantity(id, quantity);
+                        tmp.put(id, item);
+                    } else {
+                        throw new InvalidItemException();
+                    }
+                }
+                itemMap = tmp;
+            }
+        } else {
+            throw new OrderProcessingException();
+        }
+    }
+
+    @Override
+    public List<ItemQuantity> getOrdersPerItem(Set<Integer> itemIds)
+            throws InvalidItemException {
+        List<ItemQuantity> items = new ArrayList<ItemQuantity>();
+        synchronized(itemMap) {
+            for (Integer i : itemIds) {
+                try {
+                    items.add(itemMap.get(i));
+                } catch (Exception e) {
+                    throw new InvalidItemException();
+                }
+            }
+        }
+        return items;
+    }
+}

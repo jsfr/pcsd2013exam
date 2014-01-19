@@ -1,0 +1,61 @@
+package com.acertainsupplychain.client.tests;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.acertainsupplychain.business.CertainItemSupplier;
+import com.acertainsupplychain.business.CertainOrderManager;
+import com.acertainsupplychain.business.ItemQuantity;
+import com.acertainsupplychain.business.OrderStep;
+import com.acertainsupplychain.client.ItemSupplierHTTPProxy;
+import com.acertainsupplychain.client.OrderManagerHTTPProxy;
+import com.acertainsupplychain.interfaces.ItemSupplier;
+import com.acertainsupplychain.interfaces.OrderManager;
+import com.acertainsupplychain.exception.OrderProcessingException;
+
+public class OrderManagerTest {
+    private static OrderManager client;
+    private static boolean localTest = true;
+    private static int id = 0;
+    private static Random r = new Random();
+
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        try {
+            if (localTest) {
+                client = new CertainOrderManager();
+            } else {
+                client = new OrderManagerHTTPProxy();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    @Test(expected=OrderProcessingException.class)
+    public void testRegisterOrderWorkflowInvalidSupplierId() throws OrderProcessingException {
+        List<OrderStep> workflow = new ArrayList<OrderStep>();
+        OrderStep step = new OrderStep(2, new ArrayList<ItemQuantity>());
+        workflow.add(step);
+        client.registerOrderWorkflow(workflow);
+    }
+    
+    @Test
+    // This assumes a running itemsupplier with id = 0 and itemids = [0;4]
+    public void testRegisterOrderWorkflowOneSupplier() throws OrderProcessingException {
+        List<OrderStep> workflow = new ArrayList<OrderStep>();
+        for (int i = 0; i < 100; i++) {
+            List<ItemQuantity> items = new ArrayList<ItemQuantity>();
+            for (int j = 0; j < 100; j++) {
+                items.add(new ItemQuantity(r.nextInt(5), r.nextInt()));
+            }
+            workflow.add(new OrderStep(0, items));
+        }
+        int workflowId = client.registerOrderWorkflow(workflow);
+        client.getOrderWorkflowStatus(workflowId);
+    }
+}

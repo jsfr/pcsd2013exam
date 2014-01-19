@@ -1,0 +1,29 @@
+package com.acertainsupplychain.client.tests;
+
+import java.util.Random;
+
+import org.junit.BeforeClass;
+
+import com.acertainsupplychain.business.CertainItemSupplier;
+import com.acertainsupplychain.client.ItemSupplierHTTPProxy;
+import com.acertainsupplychain.interfaces.ItemSupplier;
+
+public class OrderManagerTest {
+    private static OrderManager client;
+    private static boolean localTest = false;
+    private static int id = 0;
+    private static Random r = new Random();
+
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        try {
+            if (localTest) {
+                client = new CertainOrderManager();
+            } else {
+                client = new OrderManagerHTTPProxy();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}

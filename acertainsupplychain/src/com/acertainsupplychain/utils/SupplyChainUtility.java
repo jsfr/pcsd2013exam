@@ -10,7 +10,7 @@ import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.HttpExchange;
 
-import com.acertainsupplychain.client.OrderManagerClientConstants;
+import com.acertainsupplychain.client.SupplyChainClientConstants;
 import com.acertainsupplychain.exception.OrderProcessingException;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
@@ -89,7 +89,7 @@ public final class SupplyChainUtility {
             client.send(exchange);
         } catch (IOException ex) {
             throw new OrderProcessingException(
-                    OrderManagerClientConstants.strERR_CLIENT_REQUEST_SENDING, ex);
+                    SupplyChainClientConstants.strERR_CLIENT_REQUEST_SENDING, ex);
         }
 
         try {
@@ -97,7 +97,7 @@ public final class SupplyChainUtility {
             // is available
         } catch (InterruptedException ex) {
             throw new OrderProcessingException(
-                    OrderManagerClientConstants.strERR_CLIENT_REQUEST_SENDING, ex);
+                    SupplyChainClientConstants.strERR_CLIENT_REQUEST_SENDING, ex);
         }
 
         if (exchangeState == HttpExchange.STATUS_COMPLETED) {
@@ -113,18 +113,18 @@ public final class SupplyChainUtility {
 
             } catch (UnsupportedEncodingException ex) {
                 throw new OrderProcessingException(
-                        OrderManagerClientConstants.strERR_CLIENT_RESPONSE_DECODING,
+                        SupplyChainClientConstants.strERR_CLIENT_RESPONSE_DECODING,
                         ex);
             }
         } else if (exchangeState == HttpExchange.STATUS_EXCEPTED) {
             throw new OrderProcessingException(
-                    OrderManagerClientConstants.strERR_CLIENT_REQUEST_EXCEPTION);
+                    SupplyChainClientConstants.strERR_CLIENT_REQUEST_EXCEPTION);
         } else if (exchangeState == HttpExchange.STATUS_EXPIRED) {
             throw new OrderProcessingException(
-                    OrderManagerClientConstants.strERR_CLIENT_REQUEST_TIMEOUT);
+                    SupplyChainClientConstants.strERR_CLIENT_REQUEST_TIMEOUT);
         } else {
             throw new OrderProcessingException(
-                    OrderManagerClientConstants.strERR_CLIENT_UNKNOWN);
+                    SupplyChainClientConstants.strERR_CLIENT_UNKNOWN);
         }
     }
 

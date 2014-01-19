@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import com.acertainsupplychain.exception.InvalidWorkflowException;
 import com.acertainsupplychain.exception.OrderProcessingException;
@@ -47,7 +49,7 @@ public class CertainOrderManager implements OrderManager {
                 supplier[1] = new String("http://" + supplier[1]);
             }
             if (!supplier[1].endsWith("/")) {
-                supplier[1] = new String(supplier + "/");
+                supplier[1] = new String(supplier[1] + "/");
             }
             supplierServers.put(Integer.valueOf(supplier[0]) , supplier[1]);
         }
@@ -60,7 +62,11 @@ public class CertainOrderManager implements OrderManager {
         List<OrderStepRequest> requests = new ArrayList<OrderStepRequest>();
 
         for (OrderStep s : steps) {
-            requests.add(new OrderStepRequest(s, ItemSupplierMessageTag.EXECUTESTEP));
+            if (supplierServers.containsKey(s.getSupplierId())) {
+                requests.add(new OrderStepRequest(s, ItemSupplierMessageTag.EXECUTESTEP));
+            } else {
+                throw new OrderProcessingException();
+            }
         }
         List<Future<OrderStepResult>> orderStepFutures =
                 executor.executeWorkflow(supplierServers, requests);
@@ -81,20 +87,20 @@ public class CertainOrderManager implements OrderManager {
         List<StepStatus> results = new ArrayList<StepStatus>();
 
         for (Future<OrderStepResult> r : workflow) {
-            if (r.isDone()) {
-                try {
-                    OrderStepResult res = r.get();
-                    if (res.getSuccesful()) {
-                        results.add(StepStatus.SUCCESSFUL);
-                    } else {
-                        results.add(StepStatus.FAILED);
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
+            //if (r.isDone()) {
+            try {
+                OrderStepResult res = r.get(50, TimeUnit.MILLISECONDS);
+                if (res.getSuccesful()) {
+                    results.add(StepStatus.SUCCESSFUL);
+                } else {
+                    results.add(StepStatus.FAILED);
                 }
-            } else {
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+            catch (TimeoutException e) {
                 results.add(StepStatus.REGISTERED);
             }
         }

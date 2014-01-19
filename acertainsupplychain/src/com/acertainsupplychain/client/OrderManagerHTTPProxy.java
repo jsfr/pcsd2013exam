@@ -31,9 +31,9 @@ public class OrderManagerHTTPProxy implements OrderManager {
         initializeServerAddress();
         client = new HttpClient();
         client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
-        client.setMaxConnectionsPerAddress(OrderManagerClientConstants.CLIENT_MAX_CONNECTION_ADDRESS);
-        client.setThreadPool(new QueuedThreadPool(OrderManagerClientConstants.CLIENT_MAX_THREADSPOOL_THREADS));
-        client.setTimeout(OrderManagerClientConstants.CLIENT_MAX_TIMEOUT_MILLISECS);
+        client.setMaxConnectionsPerAddress(SupplyChainClientConstants.CLIENT_MAX_CONNECTION_ADDRESS);
+        client.setThreadPool(new QueuedThreadPool(SupplyChainClientConstants.CLIENT_MAX_THREADSPOOL_THREADS));
+        client.setTimeout(SupplyChainClientConstants.CLIENT_MAX_TIMEOUT_MILLISECS);
         client.start();
     }
 
@@ -43,8 +43,11 @@ public class OrderManagerHTTPProxy implements OrderManager {
 
         this.serverAddress = props
                 .getProperty(SupplyChainConstants.KEY_ORDERMANAGER);
-        if (!serverAddress.toLowerCase().startsWith("http://")) {
-            serverAddress = new String("http://" + serverAddress);
+        if (!this.serverAddress.toLowerCase().startsWith("http://")) {
+            this.serverAddress = new String("http://" + this.serverAddress);
+        }
+        if (!this.serverAddress.endsWith("/")) {
+            this.serverAddress = new String(this.serverAddress + "/");
         }
     }
 
@@ -57,7 +60,7 @@ public class OrderManagerHTTPProxy implements OrderManager {
         SupplyChainResponse result = null;
 
         ContentExchange exchange = new ContentExchange();
-        String urlString = serverAddress + "/"
+        String urlString = serverAddress
                 + OrderManagerMessageTag.REGISTERORDER;
         exchange.setMethod("POST");
         exchange.setURL(urlString);
@@ -77,7 +80,7 @@ public class OrderManagerHTTPProxy implements OrderManager {
         SupplyChainResponse result = null;
 
         ContentExchange exchange = new ContentExchange();
-        String urlString = serverAddress + "/"
+        String urlString = serverAddress
                 + OrderManagerMessageTag.GETORDER;
         exchange.setMethod("POST");
         exchange.setURL(urlString);
