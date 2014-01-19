@@ -1,5 +1,0 @@
-package com.acertainsupplychain.business;
-
-public class CertainItemSupplier implements ItemSupplier {
-
-}
