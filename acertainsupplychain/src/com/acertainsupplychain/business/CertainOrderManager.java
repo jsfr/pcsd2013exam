@@ -10,26 +10,36 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import com.acertainsupplychain.exception.InvalidWorkflowException;
 import com.acertainsupplychain.exception.OrderProcessingException;
 import com.acertainsupplychain.interfaces.OrderManager;
 import com.acertainsupplychain.utils.ItemSupplierMessageTag;
 import com.acertainsupplychain.utils.SupplyChainConstants;
+import com.acertainsupplychain.utils.SupplyChainFormatter;
 
 public class CertainOrderManager implements OrderManager {
     private static String filePath = "/home/jens/repos/pcsd2013exam/acertainsupplychain/src/server.properties";
+    private Logger logger;
+    private FileHandler fh;
     private Map<Integer, List<Future<OrderStepResult>>> workflowMap;
     private HashMap<Integer, String> supplierServers;
     private int workflowId;
     private OrderStepExecutor executor;
     private int maxOrderStepThreads = 10;
 
-    public CertainOrderManager() {
+    public CertainOrderManager(int managerId) {
         this.workflowMap = new HashMap<Integer, List<Future<OrderStepResult>>>();
         this.workflowId = 0;
         this.executor = new OrderStepExecutor(maxOrderStepThreads );
+        this.logger = Logger.getLogger("CertainOrderManagerLog");
         try {
+            this.fh = new FileHandler("CertainOrdermanager" + managerId + ".log");
+            this.logger.addHandler(fh);
+            this.logger.setLevel(Level.ALL);
+            this.fh.setFormatter(new SupplyChainFormatter());
             initializeSupplierMapping();
         } catch (Exception e) {
             e.printStackTrace();
@@ -71,6 +81,16 @@ public class CertainOrderManager implements OrderManager {
         List<Future<OrderStepResult>> orderStepFutures =
                 executor.executeWorkflow(supplierServers, requests);
         workflowMap.put(id, orderStepFutures);
+
+        this.logger.log(Level.INFO, "REGISTERWORKFLOW " + this.workflowId);
+        for (OrderStep s : steps) {
+            this.logger.log(Level.INFO, "ORDERSTEP");
+            this.logger.log(Level.INFO, "SUPPLIERID " + s.getSupplierId());
+            for (ItemQuantity i : s.getItems()) {
+                this.logger.log(Level.INFO, "ITEM " + i.getItemId() + " " + i.getQuantity());
+            }
+        }
+        fh.flush();
 
         this.workflowId++;
         return id;

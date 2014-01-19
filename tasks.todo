@@ -1,9 +1,9 @@
 General
-- Write Logger
 - Peform experiment
 - Write report (theory and about programming)
+- Implement RW-lock instead of synchronize in CertainItemSupplier
+- Implement some kind of either synchronize or RW-lock in CertainOrderManager
 
 Nice to have
 - Clean up: Refactor and move things like filepaths to ONE place only
-- Clean up: Make sure the correct exceptions are used in all places
 - Document code

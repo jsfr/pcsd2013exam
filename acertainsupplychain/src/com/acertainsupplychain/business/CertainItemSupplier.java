@@ -7,32 +7,43 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.acertainsupplychain.exception.InvalidItemException;
 import com.acertainsupplychain.exception.OrderProcessingException;
 import com.acertainsupplychain.interfaces.ItemSupplier;
 import com.acertainsupplychain.utils.SupplyChainConstants;
+import com.acertainsupplychain.utils.SupplyChainFormatter;
 
 public class CertainItemSupplier implements ItemSupplier {
     private static String filePath = "/home/jens/repos/pcsd2013exam/acertainsupplychain/src/server.properties";
     private Map<Integer, ItemQuantity> itemMap;
     private int supplierId;
+    private Logger logger;
+    private FileHandler fh;
 
     public CertainItemSupplier(Integer supplierId) {
         this.supplierId = supplierId;
+        this.logger = Logger.getLogger("CertainItemSupplierLog");
         try {
+            this.fh = new FileHandler("CertainItemSupplier" + this.supplierId + ".log");
+            this.logger.addHandler(fh);
+            this.logger.setLevel(Level.ALL);
+            this.fh.setFormatter(new SupplyChainFormatter());
             initializeItemMap();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    
+
     private void initializeItemMap() throws Exception {
         Properties props = new Properties();
         this.itemMap = new HashMap<Integer, ItemQuantity>();
         props.load(new FileInputStream(filePath));
         String suppliers = props
-                        .getProperty(SupplyChainConstants.KEY_ITEMS);
+                .getProperty(SupplyChainConstants.KEY_ITEMS);
         for (String s : suppliers.split(SupplyChainConstants.SUPPLIER_SERV_SPLIT_REGEX)) {
             String[] idAndItems = s.split(SupplyChainConstants.SUPPLIER_ID_SPLIT_REGEX);
             if (this.supplierId == Integer.valueOf(idAndItems[0])) {
@@ -48,8 +59,8 @@ public class CertainItemSupplier implements ItemSupplier {
     public void executeStep(OrderStep step) throws OrderProcessingException {
         if (step.getSupplierId() == supplierId) {
             Map<Integer, ItemQuantity> tmp = new HashMap<Integer, ItemQuantity>();
-            synchronized(itemMap) {
-                tmp.putAll(itemMap);
+            synchronized(this.itemMap) {
+                tmp.putAll(this.itemMap);
                 for (ItemQuantity i : step.getItems()) {
                     Integer id = i.getItemId();
                     if (tmp.containsKey(id)) {
@@ -60,7 +71,14 @@ public class CertainItemSupplier implements ItemSupplier {
                         throw new InvalidItemException();
                     }
                 }
-                itemMap = tmp;
+
+                logger.log(Level.INFO, "STEP");
+                for (ItemQuantity i : step.getItems()) {
+                    logger.log(Level.INFO, "ITEM " + i.getItemId() + " " + i.getQuantity());
+                }
+                fh.flush();
+
+                this.itemMap = tmp;
             }
         } else {
             throw new OrderProcessingException();

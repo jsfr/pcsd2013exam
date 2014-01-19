@@ -34,7 +34,7 @@ public class SupplyChainProxyTest {
     public static void setUpBeforeClass() {
         try {
             if (localTest) {
-                ordermanager = new CertainOrderManager();
+                ordermanager = new CertainOrderManager(0);
             } else {
                 ordermanager = new OrderManagerHTTPProxy();
             }
@@ -70,7 +70,7 @@ public class SupplyChainProxyTest {
             List<ItemQuantity> items1 = new ArrayList<ItemQuantity>();
             for (int j = 0; j < 10; j++) {
                 int r0 = r.nextInt(5);
-                int r1 = r.nextInt();
+                int r1 = r.nextInt(Integer.MAX_VALUE);
                 items0.add(new ItemQuantity(r0, r1));
                 items1.add(new ItemQuantity(5+r0, r1));
                 quantities.put(r0, quantities.get(r0)+r1);
@@ -127,7 +127,7 @@ public class SupplyChainProxyTest {
             List<ItemQuantity> items0 = new ArrayList<ItemQuantity>();
             List<ItemQuantity> items1 = new ArrayList<ItemQuantity>();
             for (int j = 0; j < 10; j++) {
-                int r1 = r.nextInt();
+                int r1 = r.nextInt(Integer.MAX_VALUE);
                 items0.add(new ItemQuantity(-1, r1));
                 items1.add(new ItemQuantity(-1, r1));
             }

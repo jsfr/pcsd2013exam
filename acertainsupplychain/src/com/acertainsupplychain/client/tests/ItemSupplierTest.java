@@ -58,7 +58,7 @@ public class ItemSupplierTest {
     public void testExecuteStep() throws OrderProcessingException {
         List<ItemQuantity> items = new ArrayList<ItemQuantity>();
         for (int i = 0; i < 100; i++) {
-            items.add(new ItemQuantity(r.nextInt(5), r.nextInt()));
+            items.add(new ItemQuantity(r.nextInt(5), r.nextInt(Integer.MAX_VALUE)));
         }
         OrderStep step = new OrderStep(id, items);
         client.executeStep(step);

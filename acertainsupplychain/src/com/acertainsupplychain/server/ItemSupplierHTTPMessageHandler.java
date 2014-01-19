@@ -38,7 +38,7 @@ public class ItemSupplierHTTPMessageHandler extends AbstractHandler {
         response.setContentType("text/html;charset=utf-8");
         response.setStatus(HttpServletResponse.SC_OK);
         requestURI = request.getRequestURI();
-        System.out.println(requestURI);
+
         messageTag = SupplyChainUtility.
                 convertURItoItemSupplierMessageTag(requestURI);
 

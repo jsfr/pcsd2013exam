@@ -27,7 +27,7 @@ public class OrderManagerTest {
     public static void setUpBeforeClass() {
         try {
             if (localTest) {
-                client = new CertainOrderManager();
+                client = new CertainOrderManager(0);
             } else {
                 client = new OrderManagerHTTPProxy();
             }
@@ -51,7 +51,7 @@ public class OrderManagerTest {
         for (int i = 0; i < 100; i++) {
             List<ItemQuantity> items = new ArrayList<ItemQuantity>();
             for (int j = 0; j < 20; j++) {
-                items.add(new ItemQuantity(r.nextInt(5), r.nextInt()));
+                items.add(new ItemQuantity(r.nextInt(5), r.nextInt(Integer.MAX_VALUE)));
             }
             workflow.add(new OrderStep(0, items));
         }
@@ -76,8 +76,8 @@ public class OrderManagerTest {
             List<ItemQuantity> items0 = new ArrayList<ItemQuantity>();
             List<ItemQuantity> items1 = new ArrayList<ItemQuantity>();
             for (int j = 0; j < 10; j++) {
-                items0.add(new ItemQuantity(r.nextInt(5), r.nextInt()));
-                items1.add(new ItemQuantity(5+r.nextInt(5), r.nextInt()));
+                items0.add(new ItemQuantity(r.nextInt(5), r.nextInt(Integer.MAX_VALUE)));
+                items1.add(new ItemQuantity(5+r.nextInt(5), r.nextInt(Integer.MAX_VALUE)));
             }
             workflow.add(new OrderStep(0, items0));
             workflow.add(new OrderStep(1, items1));
@@ -101,7 +101,7 @@ public class OrderManagerTest {
         for (int i = 0; i < 100; i++) {
             List<ItemQuantity> items = new ArrayList<ItemQuantity>();
             for (int j = 0; j < 20; j++) {
-                items.add(new ItemQuantity(-1, r.nextInt()));
+                items.add(new ItemQuantity(-1, r.nextInt(Integer.MAX_VALUE)));
             }
             workflow.add(new OrderStep(0, items));
         }
@@ -125,8 +125,8 @@ public class OrderManagerTest {
             List<ItemQuantity> items0 = new ArrayList<ItemQuantity>();
             List<ItemQuantity> items1 = new ArrayList<ItemQuantity>();
             for (int j = 0; j < 10; j++) {
-                items0.add(new ItemQuantity(-1, r.nextInt()));
-                items1.add(new ItemQuantity(-1, r.nextInt()));
+                items0.add(new ItemQuantity(-1, r.nextInt(Integer.MAX_VALUE)));
+                items1.add(new ItemQuantity(-1, r.nextInt(Integer.MAX_VALUE)));
             }
             workflow.add(new OrderStep(0, items0));
             workflow.add(new OrderStep(1, items1));
