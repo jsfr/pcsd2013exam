@@ -121,6 +121,12 @@ If we assume that we only need to sort the keys, as these can be use to access t
 \paragraph{Question 2} % (fold)
 \label{par:question_2}
 
+To ensure serializability at each ItemSupplier a read/write-lock is utilized. Whenever the ItemSupplier tries to execute a step it first takes a write lock, as this action includes both reading the items of the supplier and later on writing the new updated quantities. However when the ItemSupplier tries to get the number of orders for a set of items it need only take a read-lock. This allows several clients to get order quantities without blocking each other. However when someone wishes to update the orders they must have exclusive access. This approach makes sure that no one gets dirty reads.
+
+As there is only one lock per ItemSupplier, the method utilized is not only equivalent to, but is, strict two-phase locking. The lock is always taken before the part of the method which interacts with the ItemSuppliers map of items. Furthermore, it is released only when the method is done using the map. Finally when first the lock is released the lock is not reacquired in the method, thus in this way we are actually using a strict two-phase locking approach.
+
+If we consider the workload an ItemSupplier is exposed to it would seem realistic that it would receive more requests to execute steps than it would to check for orders, as each workflow can consist of many steps, of which several may be directed to the same ItemSupplier, and that several OrderManagers may request execution of steps. Considering this, it would have been nice to be able to allow either to process steps concurrently or to just check and accept them, and then process them at a later time (This however is alleviated by OrderManagers as they themselves process steps asynchronously). 
+
 % paragraph question_2 (end)
 
 \paragraph{Question 3} % (fold)
