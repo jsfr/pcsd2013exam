@@ -42,19 +42,33 @@
 
 \begin{document}
 \maketitle
-\pagebreak
 
+\newpage
 \part{Exercises} % (fold)
 \label{prt:exercises_}
 
 \section{Proximity} % (fold)
 \label{sec:proximity}
 
+I assume we use a two-phase, multiway merge-sort algoritm which uses quicksort to sort each sublist which fits in main memory (as described in \cite{chap10}). This means that $d$ will be the number of sublists we must split our data into to sort it all in main memory. Here I assume that $d$ is the combined number of sublists for $N_1$ and $N_2$.
+
 \paragraph{a)} % (fold)
 
 % paragraph a_ (end)
 
 \paragraph{b)} % (fold)
+
+Each sublist must contain $\lfloor K_d \rfloor \vee \lfloor K_d + 1 \rfloor$ record keys where $K_d = \frac{N_1 + N_2}{d}$, as this gives the number of records per sublist. As an approximation we simply say that each sublist contains $K_d$ record keys. Of course $K_d$ might not be and integer, but if we assume so, we still get a very close approximation.
+
+To completely fill main memory once we must transfer $\frac{M}{B} = K_B$ blocks. For the first phase of the algorithm we must fill main memory $d$ times as we have $d$ sublists. Of course we also need to transfer the sorted sublists back to disk. Thus if we assume that we sort the sublists in place (to avoid having to swap parts of the sublists back to disk) we must for phase one transfer $(2 \cdot K_B \cdot d)$ blocks of size $B$.
+
+For the second phase we assume that $d \cdot k \le M$, meaning that we can hold one key from each sublist in memory at a time. As we now sort the sublists by transferring every nth record key and sorting these we must transfer $d$ keys (one from each sublist) $K_d$ times (the average length of the sublists). We again of course need to transfer both ways and thus we must transfer $(2 \cdot d \cdot K_d)$ record keys of size $k$.
+
+If we assume that we only need to sort the keys, as these can be use to access the actual data, we are done after sorting the keys and thus we have an IO-cost of approximately
+\[
+    (2 \cdot K_B \cdot d) B + (2 \cdot d \cdot K_d) k =
+    2 d (M + N_1 + N_2)
+\]
 
 % paragraph b_ (end)
 
@@ -87,29 +101,68 @@
 
 % part exercises_ (end)
 
+\newpage
 \part{Programming} % (fold)
 \label{prt:programming_}
 
 \section{High-Level Design Decisions and Modularity} % (fold)
 \label{sec:high_level_design_decisions_and_modularity}
 
+\paragraph{Question 1} % (fold)
+\label{par:question_1}
+
+% paragraph question_1 (end)
+
 % section high_level_design_decisions_and_modularity (end)
 
 \section{Atomicity and Fault-Tolerance} % (fold)
 \label{sec:atomicity_and_fault_tolerance}
+
+\paragraph{Question 2} % (fold)
+\label{par:question_2}
+
+% paragraph question_2 (end)
+
+\paragraph{Question 3} % (fold)
+\label{par:question_3}
+The OrderManager logs every workflow it registers, with a supplier id, all its order steps and their respective item ids and quantities. Furthermore every time a task running one of the steps completes, meaning that it has received an answer from the supplier, it adds an entry to the log with the steps workflow id, which step in the workflow it was, and whether the step succeeded or failed (resulted in an error). To recover from a failure in the OrderManager we could do the following. First we read in the entire log and identify all workflow which have completely registered, meaning that it should begin with \texttt{WORKFLOW BEGIN id} and end with either \texttt{WORKFLOW END} or \texttt{WORKFLOW CANCELLED}. Canceled workflows can be thrown away. There can at maximum be one not properly ended workflow as methods in the OrderManager are synchronized. If a workflow has not been ended its steps was never submitted and thus they must all be submitted to their suppliers (using the executor). If a workflow was properly ended we must scour the log for every \texttt{SUCCSTEP} and \texttt{FAILSTEP} entry belonging to that workflow. All steps which were not registered should be resubmitted to their suppliers.
+
+%TODO: something about how we might submit in a task and crash while the itemsupplier actually correctly does the step. Is it better to say when we start a submission and then if we fail midways throw it away just to avoid duplicating steps?
+
+The ItemSupplier logs every step that it starts executing and whether the step was successful or failed. To recover from a failure in the ItemSupplier we could do the following. First we read the entire log. Every successful step we replay and every canceled step we throw away.
+% paragraph question_3 (end)
 
 % section atomicity_and_fault_tolerance (end)
 
 \section{Testing} % (fold)
 \label{sec:testing}
 
+\paragraph{Question 4} % (fold)
+\label{par:question_4}
+
+% paragraph question_4 (end)
+
 % section testing (end)
 
 \section{Experiments} % (fold)
 \label{sec:experiments}
 
+\paragraph{Question 5} % (fold)
+\label{par:question_5}
+
+% paragraph question_5 (end)
+
 % section experiments (end)
 
 % part programming_ (end)
 
+\begin{thebibliography}{9}
+
+\bibitem{chap10}
+    H. Garcia-Molina, J. D. Ullman, J. Widom.
+    Database Systems: The Complete Book,
+    Chapter 11.4, pp. 525–533 (9 of 1119).
+    Prentice Hall, 2002.
+    ISBN: 0-13-031995-3
+\end{thebibliography}
 \end{document}

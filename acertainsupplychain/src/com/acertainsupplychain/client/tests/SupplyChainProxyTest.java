@@ -1,6 +1,7 @@
 package com.acertainsupplychain.client.tests;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,12 +24,18 @@ import com.acertainsupplychain.interfaces.ItemSupplier;
 import com.acertainsupplychain.interfaces.OrderManager;
 import com.acertainsupplychain.interfaces.OrderManager.StepStatus;
 
+/**
+ * Test testing both ends of a supply chain. The test requires two 
+ * ItemSuppliers with id = 0 and id = 1, and itemIds = [0;4] and 
+ * itemIds = [5;9] respectively. The test also requires a single OrderManager.
+ */
 public class SupplyChainProxyTest {
-    private static OrderManager ordermanager;
-    private static ItemSupplier supplier0, supplier1;
     private static int id0 = 0, id1 = 1;
     private static boolean localTest = false;
+    private static OrderManager ordermanager;
     private static Random r = new Random();
+    private static ItemSupplier supplier0, supplier1;
+    private static int maxQuantity = 1000;
 
     @BeforeClass
     public static void setUpBeforeClass() {
@@ -45,13 +52,21 @@ public class SupplyChainProxyTest {
         }
     }
 
+    /**
+     * Tests doing a successful workflow from one OrderManger to 
+     * two ItemSuppliers. The test ensures that the OrderManager sees all steps
+     * as successful upon their completion and that the item quantities are 
+     * updated correctly at the ItemSuppliers.
+     * 
+     * @throws OrderProcessingException
+     */
     @Test
-    public void testSuccesfulWorkOrder() throws OrderProcessingException {
+    public void testSuccesfulWorkflow() throws OrderProcessingException {
         Set<Integer> itemIds0 = new HashSet<Integer>(), itemIds1 = new HashSet<Integer>();
 
-        for (int i = 0; i < 5; i ++) {
+        for (int i = 0; i < 5; i++) {
             itemIds0.add(i);
-            itemIds1.add(i+5);
+            itemIds1.add(i + 5);
         }
 
         List<ItemQuantity> itemsBefore0 = supplier0.getOrdersPerItem(itemIds0);
@@ -65,16 +80,16 @@ public class SupplyChainProxyTest {
         }
 
         List<OrderStep> workflow = new ArrayList<OrderStep>();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 50; i++) {
             List<ItemQuantity> items0 = new ArrayList<ItemQuantity>();
             List<ItemQuantity> items1 = new ArrayList<ItemQuantity>();
-            for (int j = 0; j < 10; j++) {
+            for (int j = 0; j < 5; j++) {
                 int r0 = r.nextInt(5);
-                int r1 = r.nextInt(Integer.MAX_VALUE);
+                int r1 = r.nextInt(maxQuantity);
                 items0.add(new ItemQuantity(r0, r1));
-                items1.add(new ItemQuantity(5+r0, r1));
-                quantities.put(r0, quantities.get(r0)+r1);
-                quantities.put(r0+5, quantities.get(r0+5)+r1);
+                items1.add(new ItemQuantity(5 + r0, r1));
+                quantities.put(r0, quantities.get(r0) + r1);
+                quantities.put(r0 + 5, quantities.get(r0 + 5) + r1);
             }
             workflow.add(new OrderStep(id0, items0));
             workflow.add(new OrderStep(id1, items1));
@@ -84,14 +99,15 @@ public class SupplyChainProxyTest {
         List<StepStatus> statusList;
         do {
             statusList = ordermanager.getOrderWorkflowStatus(workflowId);
-        } while (statusList.contains(StepStatus.REGISTERED) && !statusList.contains(StepStatus.FAILED));
+        } while (statusList.contains(StepStatus.REGISTERED)
+                && !statusList.contains(StepStatus.FAILED));
         if (statusList.contains(StepStatus.FAILED)) {
             assertTrue(false);
         } else {
             assertTrue(true);
         }
 
-        List<ItemQuantity> itemsAfter0= supplier0.getOrdersPerItem(itemIds0);
+        List<ItemQuantity> itemsAfter0 = supplier0.getOrdersPerItem(itemIds0);
         List<ItemQuantity> itemsAfter1 = supplier1.getOrdersPerItem(itemIds1);
         assertEquals(itemIds0.size(), itemsAfter0.size());
         assertEquals(itemIds1.size(), itemsAfter1.size());
@@ -102,19 +118,27 @@ public class SupplyChainProxyTest {
             assertEquals(i.getQuantity(), quantity);
         }
         for (ItemQuantity i : itemsAfter1) {
-            int quantity = itemsBefore1.get(i.getItemId()-5).getQuantity() 
+            int quantity = itemsBefore1.get(i.getItemId() - 5).getQuantity()
                     + quantities.get(i.getItemId());
             assertEquals(i.getQuantity(), quantity);
         }
     }
 
+    /**
+     * Tests doing an unsuccessful workflow from one OrderManger to 
+     * two ItemSuppliers. The test ensures that the OrderManager sees all steps
+     * as unsuccessful upon their completion and that the item quantities 
+     * remain unchanged at the ItemSuppliers. Here the problem is a wrong itemId.
+     * 
+     * @throws OrderProcessingException
+     */
     @Test
-    public void testUnsuccesfulWorkOrder() throws OrderProcessingException {
+    public void testUnsuccesfulWorkflow1() throws OrderProcessingException {
         Set<Integer> itemIds0 = new HashSet<Integer>(), itemIds1 = new HashSet<Integer>();
 
-        for (int i = 0; i < 5; i ++) {
+        for (int i = 0; i < 5; i++) {
             itemIds0.add(i);
-            itemIds1.add(i+5);
+            itemIds1.add(i + 5);
         }
 
         List<ItemQuantity> itemsBefore0 = supplier0.getOrdersPerItem(itemIds0);
@@ -123,11 +147,11 @@ public class SupplyChainProxyTest {
         assertEquals(itemIds1.size(), itemsBefore1.size());
 
         List<OrderStep> workflow = new ArrayList<OrderStep>();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 50; i++) {
             List<ItemQuantity> items0 = new ArrayList<ItemQuantity>();
             List<ItemQuantity> items1 = new ArrayList<ItemQuantity>();
-            for (int j = 0; j < 10; j++) {
-                int r1 = r.nextInt(Integer.MAX_VALUE);
+            for (int j = 0; j < 5; j++) {
+                int r1 = r.nextInt(maxQuantity);
                 items0.add(new ItemQuantity(-1, r1));
                 items1.add(new ItemQuantity(-1, r1));
             }
@@ -139,14 +163,15 @@ public class SupplyChainProxyTest {
         List<StepStatus> statusList;
         do {
             statusList = ordermanager.getOrderWorkflowStatus(workflowId);
-        } while (statusList.contains(StepStatus.REGISTERED) && !statusList.contains(StepStatus.SUCCESSFUL));
+        } while (statusList.contains(StepStatus.REGISTERED)
+                && !statusList.contains(StepStatus.SUCCESSFUL));
         if (statusList.contains(StepStatus.SUCCESSFUL)) {
             assertTrue(false);
         } else {
             assertTrue(true);
         }
 
-        List<ItemQuantity> itemsAfter0= supplier0.getOrdersPerItem(itemIds0);
+        List<ItemQuantity> itemsAfter0 = supplier0.getOrdersPerItem(itemIds0);
         List<ItemQuantity> itemsAfter1 = supplier1.getOrdersPerItem(itemIds1);
         assertEquals(itemIds0.size(), itemsAfter0.size());
         assertEquals(itemIds1.size(), itemsAfter1.size());
@@ -156,7 +181,69 @@ public class SupplyChainProxyTest {
             assertEquals(i.getQuantity(), quantity);
         }
         for (ItemQuantity i : itemsAfter1) {
-            int quantity = itemsBefore1.get(i.getItemId()-5).getQuantity();
+            int quantity = itemsBefore1.get(i.getItemId() - 5).getQuantity();
+            assertEquals(i.getQuantity(), quantity);
+        }
+    }
+
+    /**
+     * Tests doing an unsuccessful workflow from one OrderManger to 
+     * two ItemSuppliers. The test ensures that the OrderManager sees all steps
+     * as unsuccessful upon their completion and that the item quantities 
+     * remain unchanged at the ItemSuppliers. Here the problem is a negative
+     * quantity.
+     * 
+     * @throws OrderProcessingException
+     */
+    @Test
+    public void testUnsuccesfulWorkflow2() throws OrderProcessingException {
+        Set<Integer> itemIds0 = new HashSet<Integer>(), itemIds1 = new HashSet<Integer>();
+
+        for (int i = 0; i < 5; i++) {
+            itemIds0.add(i);
+            itemIds1.add(i + 5);
+        }
+
+        List<ItemQuantity> itemsBefore0 = supplier0.getOrdersPerItem(itemIds0);
+        List<ItemQuantity> itemsBefore1 = supplier1.getOrdersPerItem(itemIds1);
+        assertEquals(itemIds0.size(), itemsBefore0.size());
+        assertEquals(itemIds1.size(), itemsBefore1.size());
+
+        List<OrderStep> workflow = new ArrayList<OrderStep>();
+        for (int i = 0; i < 50; i++) {
+            List<ItemQuantity> items0 = new ArrayList<ItemQuantity>();
+            List<ItemQuantity> items1 = new ArrayList<ItemQuantity>();
+            for (int j = 0; j < 5; j++) {
+                items0.add(new ItemQuantity(r.nextInt(5), -1));
+                items1.add(new ItemQuantity(5+r.nextInt(5), -1));
+            }
+            workflow.add(new OrderStep(id0, items0));
+            workflow.add(new OrderStep(id1, items1));
+        }
+
+        int workflowId = ordermanager.registerOrderWorkflow(workflow);
+        List<StepStatus> statusList;
+        do {
+            statusList = ordermanager.getOrderWorkflowStatus(workflowId);
+        } while (statusList.contains(StepStatus.REGISTERED)
+                && !statusList.contains(StepStatus.SUCCESSFUL));
+        if (statusList.contains(StepStatus.SUCCESSFUL)) {
+            assertTrue(false);
+        } else {
+            assertTrue(true);
+        }
+
+        List<ItemQuantity> itemsAfter0 = supplier0.getOrdersPerItem(itemIds0);
+        List<ItemQuantity> itemsAfter1 = supplier1.getOrdersPerItem(itemIds1);
+        assertEquals(itemIds0.size(), itemsAfter0.size());
+        assertEquals(itemIds1.size(), itemsAfter1.size());
+
+        for (ItemQuantity i : itemsAfter0) {
+            int quantity = itemsBefore0.get(i.getItemId()).getQuantity();
+            assertEquals(i.getQuantity(), quantity);
+        }
+        for (ItemQuantity i : itemsAfter1) {
+            int quantity = itemsBefore1.get(i.getItemId() - 5).getQuantity();
             assertEquals(i.getQuantity(), quantity);
         }
     }

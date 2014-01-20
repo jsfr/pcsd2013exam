@@ -1,6 +1,6 @@
 package com.acertainsupplychain.client.tests;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -15,15 +15,20 @@ import com.acertainsupplychain.business.CertainItemSupplier;
 import com.acertainsupplychain.business.ItemQuantity;
 import com.acertainsupplychain.business.OrderStep;
 import com.acertainsupplychain.client.ItemSupplierHTTPProxy;
-import com.acertainsupplychain.exception.OrderProcessingException;
 import com.acertainsupplychain.exception.InvalidItemException;
+import com.acertainsupplychain.exception.OrderProcessingException;
 import com.acertainsupplychain.interfaces.ItemSupplier;
 
+/**
+ * Tests a single ItemSupplier. The supplier is expected to have id = 0 
+ * and itemids = [0;4]
+ */
 public class ItemSupplierTest {
     private static ItemSupplier client;
-    private static boolean localTest = false;
     private static int id = 0;
+    private static boolean localTest = false;
     private static Random r = new Random();
+    private static int maxQuantity = 1000;
 
     @BeforeClass
     public static void setUpBeforeClass() {
@@ -38,14 +43,18 @@ public class ItemSupplierTest {
         }
     }
 
-    @Test(expected=OrderProcessingException.class)
-    public void testExecuteStepWrongSupplierId() throws OrderProcessingException {
-        OrderStep step = new OrderStep(id+1, new ArrayList<ItemQuantity>());
+    @Test
+    public void testExecuteStep() throws OrderProcessingException {
+        List<ItemQuantity> items = new ArrayList<ItemQuantity>();
+        for (int i = 0; i < 50; i++) {
+            items.add(new ItemQuantity(r.nextInt(5), r
+                    .nextInt(maxQuantity)));
+        }
+        OrderStep step = new OrderStep(id, items);
         client.executeStep(step);
     }
 
-    @Test(expected=InvalidItemException.class)
-    // This assumes that no item with id = -1 exist
+    @Test(expected = InvalidItemException.class)
     public void testExecuteStepInvalidItemId() throws OrderProcessingException {
         List<ItemQuantity> items = new ArrayList<ItemQuantity>();
         items.add(new ItemQuantity(-1, 1));
@@ -53,23 +62,19 @@ public class ItemSupplierTest {
         client.executeStep(step);
     }
 
-    @Test
-    // This assumes that we use an itemSupplier with itemIds in the range [0;4]
-    public void testExecuteStep() throws OrderProcessingException {
-        List<ItemQuantity> items = new ArrayList<ItemQuantity>();
-        for (int i = 0; i < 100; i++) {
-            items.add(new ItemQuantity(r.nextInt(5), r.nextInt(Integer.MAX_VALUE)));
-        }
-        OrderStep step = new OrderStep(id, items);
+    @Test(expected = OrderProcessingException.class)
+    public void testExecuteStepWrongSupplierId()
+            throws OrderProcessingException {
+        OrderStep step = new OrderStep(id + 1, new ArrayList<ItemQuantity>());
         client.executeStep(step);
     }
 
-    @Test(expected=InvalidItemException.class)
-    // This assumes that no item with id = -1 exist
-    public void testGetOrdersPerItemInvalidItemId() throws InvalidItemException {
-        Set<Integer> itemIds = new HashSet<Integer>();
-        itemIds.add(-1);
-        client.getOrdersPerItem(itemIds);
+    @Test(expected = OrderProcessingException.class)
+    public void testExecuteStepNegativeQuantity() throws OrderProcessingException {
+        List<ItemQuantity> items = new ArrayList<ItemQuantity>();
+        items.add(new ItemQuantity(0, -1));
+        OrderStep step = new OrderStep(id, items);
+        client.executeStep(step);
     }
 
     @Test
@@ -79,18 +84,25 @@ public class ItemSupplierTest {
             itemIds.add(i);
         }
         List<ItemQuantity> itemsBefore = client.getOrdersPerItem(itemIds);
-        assertEquals(itemsBefore.size(), itemIds.size()); // Check that we have as many items as we asked for
+        assertEquals(itemsBefore.size(), itemIds.size()); 
 
-        OrderStep step = new OrderStep(id, itemsBefore); // This should double all orders
+        OrderStep step = new OrderStep(id, itemsBefore);
         client.executeStep(step);
 
         List<ItemQuantity> itemsAfter = client.getOrdersPerItem(itemIds);
-        assertEquals(itemsAfter.size(), itemIds.size()); // Check that we have as many items as we asked for
+        assertEquals(itemsAfter.size(), itemIds.size());
 
         for (ItemQuantity i : itemsAfter) {
             int quantityBefore = itemsBefore.get(i.getItemId()).getQuantity();
             int quantityAfter = i.getQuantity();
-            assertEquals(2*quantityBefore, quantityAfter);
+            assertEquals(2 * quantityBefore, quantityAfter);
         }
+    }
+
+    @Test(expected = InvalidItemException.class)
+    public void testGetOrdersPerItemInvalidItemId() throws InvalidItemException {
+        Set<Integer> itemIds = new HashSet<Integer>();
+        itemIds.add(-1);
+        client.getOrdersPerItem(itemIds);
     }
 }

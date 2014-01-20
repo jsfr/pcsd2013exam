@@ -1,6 +1,9 @@
 package com.acertainsupplychain.business;
 
 import java.util.concurrent.Callable;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.client.HttpClient;
@@ -14,14 +17,27 @@ import com.acertainsupplychain.utils.SupplyChainUtility;
 
 public class OrderStepTask implements Callable<OrderStepResult> {
 
+    private HttpClient client;
+    private FileHandler fh;
+    private Logger logger;
     private OrderStepRequest request;
     private String server;
-    private HttpClient client;
 
-    public OrderStepTask(String server, OrderStepRequest request) {
+    /**
+     * Used to execute a OrderStep request asynchronously from the OrderManager
+     * 
+     * @param server Address of the server to which the request should be sent.
+     * @param request Request object containing the step to execute at the server. 
+     * @param logger The logger used to log whether the task failed of succeeded.
+     * @param fh The file handle for the logger, used to flush the log.
+     */
+    public OrderStepTask(String server, OrderStepRequest request,
+            Logger logger, FileHandler fh) {
         this.server = server;
         this.request = request;
-        this.client = new HttpClient();
+        client = new HttpClient();
+        this.logger = logger;
+        this.fh = fh;
 
         client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
         client.setMaxConnectionsPerAddress(SupplyChainClientConstants.CLIENT_MAX_CONNECTION_ADDRESS);
@@ -38,14 +54,13 @@ public class OrderStepTask implements Callable<OrderStepResult> {
 
     @Override
     public OrderStepResult call() throws Exception {
-        String dataSetXmlString = SupplyChainUtility.serializeObjectToXMLString(request.getStep());
+        String dataSetXmlString = SupplyChainUtility
+                .serializeObjectToXMLString(request.getStep());
 
         Buffer requestContent = new ByteArrayBuffer(dataSetXmlString);
 
         ContentExchange exchange = new ContentExchange();
-        String urlString = this.server
-                + request.getMessageType();
-
+        String urlString = server + request.getMessageType();
 
         exchange.setMethod("POST");
         exchange.setURL(urlString);
@@ -53,9 +68,19 @@ public class OrderStepTask implements Callable<OrderStepResult> {
         OrderStepResult retval = new OrderStepResult(true);
 
         try {
-            SupplyChainUtility.SendAndRecv(this.client, exchange);
+            SupplyChainUtility.SendAndRecv(client, exchange);
+            synchronized (logger) { // We do this to keep a consistent log
+                logger.log(Level.INFO, "SUCCSTEP " + request.getWorkflowId()
+                        + " " + request.getStepId());
+                fh.flush();
+            }
         } catch (OrderProcessingException e) {
             retval.setSuccessful(false);
+            synchronized (logger) { // We do this to keep a consistent log
+                logger.log(Level.INFO, "FAILSTEP " + request.getWorkflowId()
+                        + " " + request.getStepId());
+                fh.flush();
+            }
         }
 
         return retval;

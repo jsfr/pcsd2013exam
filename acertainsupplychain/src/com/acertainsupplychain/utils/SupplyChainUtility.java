@@ -17,16 +17,45 @@ import com.thoughtworks.xstream.io.xml.StaxDriver;
 
 public final class SupplyChainUtility {
     /**
-     * Serializes an object to an xml string
+     * Convert a request URI to the message tags supported
      * 
-     * @param object
+     * @param requestURI
      * @return
      */
-    public static String serializeObjectToXMLString(Object object) {
-        String xmlString;
-        XStream xmlStream = new XStream(new StaxDriver());
-        xmlString = xmlStream.toXML(object);
-        return xmlString;
+    public static ItemSupplierMessageTag convertURItoItemSupplierMessageTag(
+            String requestURI) {
+
+        try {
+            ItemSupplierMessageTag messageTag = ItemSupplierMessageTag
+                    .valueOf(requestURI.substring(1).toUpperCase());
+            return messageTag;
+        } catch (IllegalArgumentException ex) {
+            ; // Enum type matching failed so non supported message
+        } catch (NullPointerException ex) {
+            ; // RequestURI was empty
+        }
+        return null;
+    }
+
+    /**
+     * Convert a request URI to the message tags supported
+     * 
+     * @param requestURI
+     * @return
+     */
+    public static OrderManagerMessageTag convertURItoOrderManagerMessageTag(
+            String requestURI) {
+
+        try {
+            OrderManagerMessageTag messageTag = OrderManagerMessageTag
+                    .valueOf(requestURI.substring(1).toUpperCase());
+            return messageTag;
+        } catch (IllegalArgumentException ex) {
+            ; // Enum type matching failed so non supported message
+        } catch (NullPointerException ex) {
+            ; // RequestURI was empty
+        }
+        return null;
     }
 
     /**
@@ -43,43 +72,22 @@ public final class SupplyChainUtility {
     }
 
     /**
-     * Convert a request URI to the message tags supported
+     * Returns the message of the request as a string
      * 
-     * @param requestURI
-     * @return
+     * @param request
+     * @return xml string
+     * @throws IOException
      */
-    public static OrderManagerMessageTag convertURItoOrderManagerMessageTag(String requestURI) {
+    public static String extractPOSTDataFromRequest(HttpServletRequest request)
+            throws IOException {
+        Reader reader = request.getReader();
+        int len = request.getContentLength();
 
-        try {
-            OrderManagerMessageTag messageTag = OrderManagerMessageTag
-                    .valueOf(requestURI.substring(1).toUpperCase());
-            return messageTag;
-        } catch (IllegalArgumentException ex) {
-            ; // Enum type matching failed so non supported message
-        } catch (NullPointerException ex) {
-            ; // RequestURI was empty
-        }
-        return null;
-    }
-
-    /**
-     * Convert a request URI to the message tags supported
-     * 
-     * @param requestURI
-     * @return
-     */
-    public static ItemSupplierMessageTag convertURItoItemSupplierMessageTag(String requestURI) {
-
-        try {
-            ItemSupplierMessageTag messageTag = ItemSupplierMessageTag
-                    .valueOf(requestURI.substring(1).toUpperCase());
-            return messageTag;
-        } catch (IllegalArgumentException ex) {
-            ; // Enum type matching failed so non supported message
-        } catch (NullPointerException ex) {
-            ; // RequestURI was empty
-        }
-        return null;
+        // Request must be read into a char[] first
+        char res[] = new char[len];
+        reader.read(res);
+        reader.close();
+        return new String(res);
     }
 
     public static SupplyChainResponse SendAndRecv(HttpClient client,
@@ -89,7 +97,8 @@ public final class SupplyChainUtility {
             client.send(exchange);
         } catch (IOException ex) {
             throw new OrderProcessingException(
-                    SupplyChainClientConstants.strERR_CLIENT_REQUEST_SENDING, ex);
+                    SupplyChainClientConstants.strERR_CLIENT_REQUEST_SENDING,
+                    ex);
         }
 
         try {
@@ -97,7 +106,8 @@ public final class SupplyChainUtility {
             // is available
         } catch (InterruptedException ex) {
             throw new OrderProcessingException(
-                    SupplyChainClientConstants.strERR_CLIENT_REQUEST_SENDING, ex);
+                    SupplyChainClientConstants.strERR_CLIENT_REQUEST_SENDING,
+                    ex);
         }
 
         if (exchangeState == HttpExchange.STATUS_COMPLETED) {
@@ -105,7 +115,8 @@ public final class SupplyChainUtility {
                 SupplyChainResponse supplyChainResponse = (SupplyChainResponse) SupplyChainUtility
                         .deserializeXMLStringToObject(exchange
                                 .getResponseContent().trim());
-                OrderProcessingException ex = supplyChainResponse.getException();
+                OrderProcessingException ex = supplyChainResponse
+                        .getException();
                 if (ex != null) {
                     throw ex;
                 }
@@ -129,21 +140,15 @@ public final class SupplyChainUtility {
     }
 
     /**
-     * Returns the message of the request as a string
+     * Serializes an object to an xml string
      * 
-     * @param request
-     * @return xml string
-     * @throws IOException
+     * @param object
+     * @return
      */
-    public static String extractPOSTDataFromRequest(HttpServletRequest request)
-            throws IOException {
-        Reader reader = request.getReader();
-        int len = request.getContentLength();
-
-        // Request must be read into a char[] first
-        char res[] = new char[len];
-        reader.read(res);
-        reader.close();
-        return new String(res);
+    public static String serializeObjectToXMLString(Object object) {
+        String xmlString;
+        XStream xmlStream = new XStream(new StaxDriver());
+        xmlString = xmlStream.toXML(object);
+        return xmlString;
     }
 }

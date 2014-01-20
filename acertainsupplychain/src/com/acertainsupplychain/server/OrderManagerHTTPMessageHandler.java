@@ -29,7 +29,7 @@ public class OrderManagerHTTPMessageHandler extends AbstractHandler {
     @Override
     public void handle(String target, Request baseRequest,
             HttpServletRequest request, HttpServletResponse response)
-                    throws IOException, ServletException {
+            throws IOException, ServletException {
         String requestURI;
         OrderManagerMessageTag messageTag;
 
@@ -51,7 +51,8 @@ public class OrderManagerHTTPMessageHandler extends AbstractHandler {
             switch (messageTag) {
             case REGISTERORDER:
                 xml = SupplyChainUtility.extractPOSTDataFromRequest(request);
-                List<OrderStep> steps = (List<OrderStep>) SupplyChainUtility.deserializeXMLStringToObject(xml);
+                List<OrderStep> steps = (List<OrderStep>) SupplyChainUtility
+                        .deserializeXMLStringToObject(xml);
                 supplyChainResponse = new SupplyChainResponse();
                 try {
                     workflowId = ordermanager.registerOrderWorkflow(steps);
@@ -59,19 +60,27 @@ public class OrderManagerHTTPMessageHandler extends AbstractHandler {
                 } catch (OrderProcessingException ex) {
                     supplyChainResponse.setException(ex);
                 }
-                response.getWriter().println(SupplyChainUtility.serializeObjectToXMLString(supplyChainResponse));
+                response.getWriter()
+                        .println(
+                                SupplyChainUtility
+                                        .serializeObjectToXMLString(supplyChainResponse));
                 break;
             case GETORDER:
                 xml = SupplyChainUtility.extractPOSTDataFromRequest(request);
-                workflowId = (int) SupplyChainUtility.deserializeXMLStringToObject(xml);
+                workflowId = (int) SupplyChainUtility
+                        .deserializeXMLStringToObject(xml);
                 supplyChainResponse = new SupplyChainResponse();
                 try {
-                    List<StepStatus> statusList = ordermanager.getOrderWorkflowStatus(workflowId);
+                    List<StepStatus> statusList = ordermanager
+                            .getOrderWorkflowStatus(workflowId);
                     supplyChainResponse.setResultList(statusList);
                 } catch (OrderProcessingException ex) {
                     supplyChainResponse.setException(ex);
                 }
-                response.getWriter().println(SupplyChainUtility.serializeObjectToXMLString(supplyChainResponse));
+                response.getWriter()
+                        .println(
+                                SupplyChainUtility
+                                        .serializeObjectToXMLString(supplyChainResponse));
                 break;
             default:
                 System.out.println("Unhandled message tag");

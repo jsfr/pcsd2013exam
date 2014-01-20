@@ -5,14 +5,14 @@ public class OrderStepResult {
     private boolean succ;
 
     public OrderStepResult(boolean b) {
-        this.succ = b;
-    }
-
-    public void setSuccessful(boolean b) {
-        this.succ = b;
+        succ = b;
     }
 
     public boolean getSuccesful() {
-        return this.succ;
+        return succ;
+    }
+
+    public void setSuccessful(boolean b) {
+        succ = b;
     }
 }

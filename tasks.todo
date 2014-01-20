@@ -1,10 +1,6 @@
 General
 - Peform experiment
 - Write report (theory and about programming)
-- CertainOrderManager needs to log whenever a task finishes (this probably requires a writelock)
-- Implement some kind of either synchronize or RW-lock in CertainOrderManager
 
 Nice to have
-- Currently negative quantities are allowed at both ends, this should probably be changed at tests should be added t ocheck the fail condition
 - Clean up: Refactor and move things like filepaths to ONE place only
-- Document code

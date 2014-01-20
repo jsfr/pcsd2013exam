@@ -21,40 +21,54 @@ import com.acertainsupplychain.utils.SupplyChainFormatter;
 
 public class CertainItemSupplier implements ItemSupplier {
     private static String filePath = "/home/jens/repos/pcsd2013exam/acertainsupplychain/src/server.properties";
-    private Map<Integer, ItemQuantity> itemMap;
-    private int supplierId;
-    private Logger logger;
     private FileHandler fh;
+    private Map<Integer, ItemQuantity> itemMap;
     private ReadWriteLock lock;
+    private Logger logger;
+    private int supplierId;
 
+    /**
+     * Creates a CertainItemSupplier with the given supplier id.
+     * 
+     * @param supplierId
+     */
     public CertainItemSupplier(Integer supplierId) {
         this.supplierId = supplierId;
-        this.lock = new ReentrantReadWriteLock();
-        this.logger = Logger.getLogger("CertainItemSupplierLog");
-        this.logger.setUseParentHandlers(false);
+        lock = new ReentrantReadWriteLock();
+        logger = Logger.getLogger("CertainItemSupplierLog");
+        logger.setUseParentHandlers(false);
         try {
-            this.fh = new FileHandler("CertainItemSupplier" + this.supplierId + ".log");
-            this.logger.addHandler(fh);
-            this.logger.setLevel(Level.ALL);
-            this.fh.setFormatter(new SupplyChainFormatter());
+            fh = new FileHandler("CertainItemSupplier" + this.supplierId
+                    + ".log");
+            logger.addHandler(fh);
+            logger.setLevel(Level.ALL);
+            fh.setFormatter(new SupplyChainFormatter());
             initializeItemMap();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Initializes the mapping between itemids and their quantities,
+     * kept in ItemQuantity objects.
+     * 
+     * @throws Exception
+     */
     private void initializeItemMap() throws Exception {
         Properties props = new Properties();
-        this.itemMap = new HashMap<Integer, ItemQuantity>();
+        itemMap = new HashMap<Integer, ItemQuantity>();
         props.load(new FileInputStream(filePath));
-        String suppliers = props
-                .getProperty(SupplyChainConstants.KEY_ITEMS);
-        for (String s : suppliers.split(SupplyChainConstants.SUPPLIER_SERV_SPLIT_REGEX)) {
-            String[] idAndItems = s.split(SupplyChainConstants.SUPPLIER_ID_SPLIT_REGEX);
-            if (this.supplierId == Integer.valueOf(idAndItems[0])) {
-                for (String i : idAndItems[1].split(SupplyChainConstants.SUPPLIER_ITEM_SPLIT_REGEX)) {
+        String suppliers = props.getProperty(SupplyChainConstants.KEY_ITEMS);
+        for (String s : suppliers
+                .split(SupplyChainConstants.SUPPLIER_SERV_SPLIT_REGEX)) {
+            String[] idAndItems = s
+                    .split(SupplyChainConstants.SUPPLIER_ID_SPLIT_REGEX);
+            if (supplierId == Integer.valueOf(idAndItems[0])) {
+                for (String i : idAndItems[1]
+                        .split(SupplyChainConstants.SUPPLIER_ITEM_SPLIT_REGEX)) {
                     Integer id = Integer.valueOf(i);
-                    this.itemMap.put(id, new ItemQuantity(id, 0));
+                    itemMap.put(id, new ItemQuantity(id, 0));
                 }
             }
         }
@@ -64,28 +78,38 @@ public class CertainItemSupplier implements ItemSupplier {
     public void executeStep(OrderStep step) throws OrderProcessingException {
         if (step.getSupplierId() == supplierId) {
             Map<Integer, ItemQuantity> tmp = new HashMap<Integer, ItemQuantity>();
-            this.lock.writeLock().lock();
-            tmp.putAll(this.itemMap);
+            lock.writeLock().lock();
+            tmp.putAll(itemMap);
+            logger.log(Level.INFO, "STEP BEGIN");
+            fh.flush();
             for (ItemQuantity i : step.getItems()) {
                 Integer id = i.getItemId();
                 if (tmp.containsKey(id)) {
-                    Integer quantity = tmp.get(id).getQuantity() + i.getQuantity();
-                    ItemQuantity item = new ItemQuantity(id, quantity);
-                    tmp.put(id, item);
+                    if (i.getQuantity() >= 0) {
+                        Integer quantity = tmp.get(id).getQuantity()
+                                + i.getQuantity();
+                        ItemQuantity item = new ItemQuantity(id, quantity);
+                        tmp.put(id, item);
+                        logger.log(Level.INFO,
+                                "ITEM " + i.getItemId() + " " + i.getQuantity());
+                        fh.flush();
+                    } else {
+                        logger.log(Level.INFO, "STEP CANCELLED");
+                        fh.flush();
+                        lock.writeLock().unlock();
+                        throw new OrderProcessingException();
+                    }
                 } else {
-                    this.lock.writeLock().unlock();
+                    logger.log(Level.INFO, "STEP CANCELLED");
+                    fh.flush();
+                    lock.writeLock().unlock();
                     throw new InvalidItemException();
                 }
             }
-
-            logger.log(Level.INFO, "STEP");
-            for (ItemQuantity i : step.getItems()) {
-                logger.log(Level.INFO, "ITEM " + i.getItemId() + " " + i.getQuantity());
-            }
+            itemMap = tmp;
+            logger.log(Level.INFO, "STEP END");
             fh.flush();
-
-            this.itemMap = tmp;
-            this.lock.writeLock().unlock();
+            lock.writeLock().unlock();
         } else {
             throw new OrderProcessingException();
         }
@@ -95,16 +119,16 @@ public class CertainItemSupplier implements ItemSupplier {
     public List<ItemQuantity> getOrdersPerItem(Set<Integer> itemIds)
             throws InvalidItemException {
         List<ItemQuantity> items = new ArrayList<ItemQuantity>();
-        this.lock.readLock().lock();
+        lock.readLock().lock();
         for (Integer i : itemIds) {
             if (itemMap.containsKey(i)) {
                 items.add(itemMap.get(i));
             } else {
-                this.lock.readLock().unlock();
+                lock.readLock().unlock();
                 throw new InvalidItemException();
             }
         }
-        this.lock.readLock().unlock();
+        lock.readLock().unlock();
         return items;
     }
 }

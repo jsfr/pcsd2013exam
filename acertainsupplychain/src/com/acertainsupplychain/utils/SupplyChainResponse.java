@@ -22,23 +22,23 @@ public class SupplyChainResponse {
         return exception;
     }
 
-    public void setException(OrderProcessingException exception) {
-        this.exception = exception;
-    }
-
     public List<?> getResultList() {
         return resultList;
-    }
-
-    public void setResultList(List<?> resultList) {
-        this.resultList = resultList;
     }
 
     public int getWorkflowId() {
         return workflowId;
     }
 
+    public void setException(OrderProcessingException exception) {
+        this.exception = exception;
+    }
+
+    public void setResultList(List<?> resultList) {
+        this.resultList = resultList;
+    }
+
     public void setWorkflowId(int workflowId2) {
-        this.workflowId = workflowId2;
+        workflowId = workflowId2;
     }
 }

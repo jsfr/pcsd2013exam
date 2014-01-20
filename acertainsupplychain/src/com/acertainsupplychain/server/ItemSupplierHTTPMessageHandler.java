@@ -22,7 +22,7 @@ import com.acertainsupplychain.utils.SupplyChainUtility;
 public class ItemSupplierHTTPMessageHandler extends AbstractHandler {
 
     private ItemSupplier supplier;
-    
+
     public ItemSupplierHTTPMessageHandler(ItemSupplier supplier) {
         this.supplier = supplier;
     }
@@ -31,7 +31,7 @@ public class ItemSupplierHTTPMessageHandler extends AbstractHandler {
     @Override
     public void handle(String target, Request baseRequest,
             HttpServletRequest request, HttpServletResponse response)
-                    throws IOException, ServletException {
+            throws IOException, ServletException {
         String requestURI;
         ItemSupplierMessageTag messageTag;
 
@@ -39,8 +39,8 @@ public class ItemSupplierHTTPMessageHandler extends AbstractHandler {
         response.setStatus(HttpServletResponse.SC_OK);
         requestURI = request.getRequestURI();
 
-        messageTag = SupplyChainUtility.
-                convertURItoItemSupplierMessageTag(requestURI);
+        messageTag = SupplyChainUtility
+                .convertURItoItemSupplierMessageTag(requestURI);
 
         // the RequestURI before the switch
         if (messageTag == null) {
@@ -52,26 +52,35 @@ public class ItemSupplierHTTPMessageHandler extends AbstractHandler {
             switch (messageTag) {
             case EXECUTESTEP:
                 xml = SupplyChainUtility.extractPOSTDataFromRequest(request);
-                OrderStep step = (OrderStep) SupplyChainUtility.deserializeXMLStringToObject(xml);
+                OrderStep step = (OrderStep) SupplyChainUtility
+                        .deserializeXMLStringToObject(xml);
                 supplyChainResponse = new SupplyChainResponse();
                 try {
                     supplier.executeStep(step);
                 } catch (OrderProcessingException ex) {
                     supplyChainResponse.setException(ex);
                 }
-                response.getWriter().println(SupplyChainUtility.serializeObjectToXMLString(supplyChainResponse));
+                response.getWriter()
+                        .println(
+                                SupplyChainUtility
+                                        .serializeObjectToXMLString(supplyChainResponse));
                 break;
             case GETORDERS:
                 xml = SupplyChainUtility.extractPOSTDataFromRequest(request);
-                Set<Integer> itemIds = (Set<Integer>) SupplyChainUtility.deserializeXMLStringToObject(xml);
+                Set<Integer> itemIds = (Set<Integer>) SupplyChainUtility
+                        .deserializeXMLStringToObject(xml);
                 supplyChainResponse = new SupplyChainResponse();
                 try {
-                    List<ItemQuantity> itemQuantities = supplier.getOrdersPerItem(itemIds);
+                    List<ItemQuantity> itemQuantities = supplier
+                            .getOrdersPerItem(itemIds);
                     supplyChainResponse.setResultList(itemQuantities);
                 } catch (OrderProcessingException ex) {
                     supplyChainResponse.setException(ex);
                 }
-                response.getWriter().println(SupplyChainUtility.serializeObjectToXMLString(supplyChainResponse));
+                response.getWriter()
+                        .println(
+                                SupplyChainUtility
+                                        .serializeObjectToXMLString(supplyChainResponse));
                 break;
             default:
                 System.out.println("Unhandled message tag");
