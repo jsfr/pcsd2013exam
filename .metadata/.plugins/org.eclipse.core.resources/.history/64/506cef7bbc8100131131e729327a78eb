@@ -1,0 +1,165 @@
+package com.acertainsupplychain.client.tests;
+
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.acertainsupplychain.business.CertainOrderManager;
+import com.acertainsupplychain.business.ItemQuantity;
+import com.acertainsupplychain.business.OrderStep;
+import com.acertainsupplychain.client.OrderManagerHTTPProxy;
+import com.acertainsupplychain.exception.InvalidWorkflowException;
+import com.acertainsupplychain.exception.OrderProcessingException;
+import com.acertainsupplychain.interfaces.OrderManager;
+import com.acertainsupplychain.interfaces.OrderManager.StepStatus;
+
+public class OrderManagerTest {
+    private static OrderManager client;
+    private static boolean localTest = false;
+    private static Random r = new Random();
+    private static int maxQuantity = 1000;
+
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        try {
+            if (localTest) {
+                client = new CertainOrderManager(0);
+            } else {
+                client = new OrderManagerHTTPProxy();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test(expected = InvalidWorkflowException.class)
+    public void testGetOrderWorkflowStatusInvalidWorkflowId()
+            throws InvalidWorkflowException {
+        client.getOrderWorkflowStatus(-1);
+    }
+
+    @Test
+    // This assumes a running itemsupplier with id = 0 and -1 ∉ itemids
+    public void testOrderWorkflowOneSupplierInvalidItemIds()
+            throws OrderProcessingException {
+        List<OrderStep> workflow = new ArrayList<OrderStep>();
+        for (int i = 0; i < 50; i++) {
+            List<ItemQuantity> items = new ArrayList<ItemQuantity>();
+            for (int j = 0; j < 10; j++) {
+                items.add(new ItemQuantity(-1, r.nextInt(maxQuantity)));
+            }
+            workflow.add(new OrderStep(0, items));
+        }
+        int workflowId = client.registerOrderWorkflow(workflow);
+        List<StepStatus> statusList;
+        do {
+            statusList = client.getOrderWorkflowStatus(workflowId);
+        } while (statusList.contains(StepStatus.REGISTERED)
+                && !statusList.contains(StepStatus.SUCCESSFUL));
+        if (statusList.contains(StepStatus.SUCCESSFUL)) {
+            assertTrue(false);
+        } else {
+            assertTrue(true);
+        }
+    }
+
+    @Test
+    // This assumes a running itemsupplier with id = 0 and itemids = [0;4]
+    public void testOrderWorkflowOneSupplierValidItemIds()
+            throws OrderProcessingException {
+        List<OrderStep> workflow = new ArrayList<OrderStep>();
+        for (int i = 0; i < 50; i++) {
+            List<ItemQuantity> items = new ArrayList<ItemQuantity>();
+            for (int j = 0; j < 5; j++) {
+                items.add(new ItemQuantity(r.nextInt(5), r
+                        .nextInt(maxQuantity)));
+            }
+            workflow.add(new OrderStep(0, items));
+        }
+        int workflowId = client.registerOrderWorkflow(workflow);
+        List<StepStatus> statusList;
+        do {
+            statusList = client.getOrderWorkflowStatus(workflowId);
+        } while (statusList.contains(StepStatus.REGISTERED)
+                && !statusList.contains(StepStatus.FAILED));
+        if (statusList.contains(StepStatus.FAILED)) {
+            assertTrue(false);
+        } else {
+            assertTrue(true);
+        }
+    }
+
+    @Test
+    // This assumes two running itemsuppliers with id = 0 and id = 1 and -1 ∉
+    // itemids
+    public void testOrderWorkflowTwoSuppliersInvalidItemIds()
+            throws OrderProcessingException {
+        List<OrderStep> workflow = new ArrayList<OrderStep>();
+        for (int i = 0; i < 100; i++) {
+            List<ItemQuantity> items0 = new ArrayList<ItemQuantity>();
+            List<ItemQuantity> items1 = new ArrayList<ItemQuantity>();
+            for (int j = 0; j < 10; j++) {
+                items0.add(new ItemQuantity(-1, r.nextInt(maxQuantity)));
+                items1.add(new ItemQuantity(-1, r.nextInt(maxQuantity)));
+            }
+            workflow.add(new OrderStep(0, items0));
+            workflow.add(new OrderStep(1, items1));
+        }
+        int workflowId = client.registerOrderWorkflow(workflow);
+        List<StepStatus> statusList;
+        do {
+            statusList = client.getOrderWorkflowStatus(workflowId);
+        } while (statusList.contains(StepStatus.REGISTERED)
+                && !statusList.contains(StepStatus.SUCCESSFUL));
+        if (statusList.contains(StepStatus.SUCCESSFUL)) {
+            assertTrue(false);
+        } else {
+            assertTrue(true);
+        }
+    }
+
+    @Test
+    // This assumes two running itemsuppliers with id = 0 and itemids = [0;4]
+    // and id = 1 and itemids = [5;9]
+    public void testOrderWorkflowTwoSuppliersValidItemIds()
+            throws OrderProcessingException {
+        List<OrderStep> workflow = new ArrayList<OrderStep>();
+        for (int i = 0; i < 100; i++) {
+            List<ItemQuantity> items0 = new ArrayList<ItemQuantity>();
+            List<ItemQuantity> items1 = new ArrayList<ItemQuantity>();
+            for (int j = 0; j < 10; j++) {
+                items0.add(new ItemQuantity(r.nextInt(5), r
+                        .nextInt(maxQuantity)));
+                items1.add(new ItemQuantity(5 + r.nextInt(5), r
+                        .nextInt(maxQuantity)));
+            }
+            workflow.add(new OrderStep(0, items0));
+            workflow.add(new OrderStep(1, items1));
+        }
+        int workflowId = client.registerOrderWorkflow(workflow);
+        List<StepStatus> statusList;
+        do {
+            statusList = client.getOrderWorkflowStatus(workflowId);
+        } while (statusList.contains(StepStatus.REGISTERED)
+                && !statusList.contains(StepStatus.FAILED));
+        if (statusList.contains(StepStatus.FAILED)) {
+            assertTrue(false);
+        } else {
+            assertTrue(true);
+        }
+    }
+
+    @Test(expected = OrderProcessingException.class)
+    public void testRegisterOrderWorkflowInvalidSupplierId()
+            throws OrderProcessingException {
+        List<OrderStep> workflow = new ArrayList<OrderStep>();
+        OrderStep step = new OrderStep(2, new ArrayList<ItemQuantity>());
+        workflow.add(step);
+        client.registerOrderWorkflow(workflow);
+    }
+}

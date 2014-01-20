@@ -1,0 +1,34 @@
+package com.acertainsupplychain.business;
+
+import com.acertainsupplychain.utils.ItemSupplierMessageTag;
+
+public class OrderStepRequest {
+
+    private OrderStep step;
+    private ItemSupplierMessageTag tag;
+    private int workflowId;
+    private int stepId;
+
+    public OrderStepRequest(OrderStep step, ItemSupplierMessageTag tag, int workflowId, int stepId) {
+        this.step = step;
+        this.tag = tag;
+        this.workflowId = workflowId;
+        this.stepId = stepId;
+    }
+
+    public ItemSupplierMessageTag getMessageType() {
+        return tag;
+    }
+
+    public OrderStep getStep() {
+        return step;
+    }
+
+    public String getWorkflowId() {
+        return workflowId;
+    }
+
+    public String getStepId() {
+        return stepId;
+    }
+}
