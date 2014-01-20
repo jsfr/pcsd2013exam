@@ -19,6 +19,7 @@ import com.acertainsupplychain.business.ItemQuantity;
 import com.acertainsupplychain.business.OrderStep;
 import com.acertainsupplychain.client.ItemSupplierHTTPProxy;
 import com.acertainsupplychain.client.OrderManagerHTTPProxy;
+import com.acertainsupplychain.client.tests.ServerRunnable.Server;
 import com.acertainsupplychain.exception.OrderProcessingException;
 import com.acertainsupplychain.interfaces.ItemSupplier;
 import com.acertainsupplychain.interfaces.OrderManager;
@@ -43,8 +44,13 @@ public class SupplyChainProxyTest {
             if (localTest) {
                 ordermanager = new CertainOrderManager(0);
             } else {
+                // Not joining on the threads and letting them die 
+                // with the VM is kind of dirty, but it works for our purpose.
+                new Thread(new ServerRunnable("0", "8081", Server.ORDERMANAGER_SERVER)).start();
                 ordermanager = new OrderManagerHTTPProxy();
             }
+            new Thread(new ServerRunnable("0", "8082", Server.ITEMSUPPLIER_SERVER)).start();
+            new Thread(new ServerRunnable("1", "8083", Server.ITEMSUPPLIER_SERVER)).start();
             supplier0 = new ItemSupplierHTTPProxy(id0);
             supplier1 = new ItemSupplierHTTPProxy(id1);
         } catch (Exception e) {

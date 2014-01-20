@@ -13,6 +13,7 @@ import com.acertainsupplychain.business.CertainOrderManager;
 import com.acertainsupplychain.business.ItemQuantity;
 import com.acertainsupplychain.business.OrderStep;
 import com.acertainsupplychain.client.OrderManagerHTTPProxy;
+import com.acertainsupplychain.client.tests.ServerRunnable.Server;
 import com.acertainsupplychain.exception.InvalidWorkflowException;
 import com.acertainsupplychain.exception.OrderProcessingException;
 import com.acertainsupplychain.interfaces.OrderManager;
@@ -35,6 +36,11 @@ public class OrderManagerTest {
             if (localTest) {
                 client = new CertainOrderManager(0);
             } else {
+                // Not joining on the threads and letting them die 
+                // with the VM is kind of dirty, but it works for our purpose.
+                new Thread(new ServerRunnable("0", "8081", Server.ORDERMANAGER_SERVER)).start();
+                new Thread(new ServerRunnable("0", "8082", Server.ITEMSUPPLIER_SERVER)).start();
+                new Thread(new ServerRunnable("1", "8083", Server.ITEMSUPPLIER_SERVER)).start();
                 client = new OrderManagerHTTPProxy();
             }
         } catch (Exception e) {

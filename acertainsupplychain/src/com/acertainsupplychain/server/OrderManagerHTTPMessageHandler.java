@@ -67,7 +67,7 @@ public class OrderManagerHTTPMessageHandler extends AbstractHandler {
                 break;
             case GETORDER:
                 xml = SupplyChainUtility.extractPOSTDataFromRequest(request);
-                workflowId = (int) SupplyChainUtility
+                workflowId = (Integer) SupplyChainUtility
                         .deserializeXMLStringToObject(xml);
                 supplyChainResponse = new SupplyChainResponse();
                 try {
