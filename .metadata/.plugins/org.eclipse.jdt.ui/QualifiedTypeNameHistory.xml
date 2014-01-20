@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
-<fullyQualifiedTypeName name="java.util.concurrent.Executors"/>
-<fullyQualifiedTypeName name="java.util.concurrent.Callable"/>
 <fullyQualifiedTypeName name="org.eclipse.jetty.client.ContentExchange"/>
 <fullyQualifiedTypeName name="org.eclipse.jetty.client.HttpClient"/>
 <fullyQualifiedTypeName name="org.eclipse.jetty.util.thread.QueuedThreadPool"/>
@@ -28,7 +26,6 @@
 <fullyQualifiedTypeName name="com.acertainsupplychain.utils.SupplyChainResponse"/>
 <fullyQualifiedTypeName name="org.eclipse.jetty.server.handler.AbstractHandler"/>
 <fullyQualifiedTypeName name="org.junit.BeforeClass"/>
-<fullyQualifiedTypeName name="com.acertainsupplychain.server.ItemSupplierHTTPServer"/>
 <fullyQualifiedTypeName name="java.util.Random"/>
 <fullyQualifiedTypeName name="com.acertainsupplychain.exception.InvalidItemException"/>
 <fullyQualifiedTypeName name="com.acertainsupplychain.interfaces.OrderManager"/>
@@ -60,4 +57,7 @@
 <fullyQualifiedTypeName name="java.util.concurrent.locks.Lock"/>
 <fullyQualifiedTypeName name="java.util.logging.Logger"/>
 <fullyQualifiedTypeName name="java.util.logging.Level"/>
+<fullyQualifiedTypeName name="com.acertainsupplychain.server.ItemSupplierHTTPServer"/>
+<fullyQualifiedTypeName name="com.acertainsupplychain.server.OrderManagerHTTPServer"/>
+<fullyQualifiedTypeName name="com.acertainsupplychain.client.tests.ServerRunnable.Server"/>
 </qualifiedTypeNameHistroy>

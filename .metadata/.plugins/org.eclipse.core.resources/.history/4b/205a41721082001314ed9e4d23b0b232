@@ -1,0 +1,19 @@
+package com.acertainsupplychain.client.tests;
+
+import com.acertainsupplychain.server.ItemSupplierHTTPServer;
+
+public class ServerRunnable implements Runnable {
+    private String id;
+    private String port;
+
+    public ServerRunnable(String id, String port) {
+        this.id = id;
+        this.port = port;
+    }
+
+    public void run() {
+        String[] args = {id, port};
+        ItemSupplierHTTPServer.main(args);
+        // code in the other thread, can reference "var" variable
+    }
+}
