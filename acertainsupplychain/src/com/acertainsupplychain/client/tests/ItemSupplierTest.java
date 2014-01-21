@@ -15,10 +15,11 @@ import com.acertainsupplychain.business.CertainItemSupplier;
 import com.acertainsupplychain.business.ItemQuantity;
 import com.acertainsupplychain.business.OrderStep;
 import com.acertainsupplychain.client.ItemSupplierHTTPProxy;
-import com.acertainsupplychain.client.tests.ServerRunnable.Server;
 import com.acertainsupplychain.exception.InvalidItemException;
 import com.acertainsupplychain.exception.OrderProcessingException;
 import com.acertainsupplychain.interfaces.ItemSupplier;
+import com.acertainsupplychain.server.ServerRunnable;
+import com.acertainsupplychain.server.ServerRunnable.Server;
 
 /**
  * Tests a single ItemSupplier. The supplier is expected to have id = 0 and

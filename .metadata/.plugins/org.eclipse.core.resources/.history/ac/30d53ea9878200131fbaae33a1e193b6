@@ -1,0 +1,77 @@
+package com.acertainsupplychain.client.workload;
+
+import java.util.List;
+import java.util.logging.FileHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+
+import com.acertainsupplychain.business.CertainItemSupplier;
+import com.acertainsupplychain.utils.SupplyChainFormatter;
+
+public class CertainWorkload {
+    
+    private static Logger logger = Logger.getLogger(CertainWorkload.class.getName());
+
+    private static int intArg(String[] args, int argNum) throws IndexOutOfBoundsException {
+        return Integer.parseInt(args[argNum]);
+    }
+
+    /**
+     * @param args
+     */
+    public static void main(String[] args) throws Exception {
+
+        int numConcurrentWorkloadThreadsStep = 1;
+        int numConcurrentWorkloadThreadsMax = 30;
+        int numRunsPerStep = 10;
+
+        try {
+            numConcurrentWorkloadThreadsMax = intArg(args,0);
+            numRunsPerStep = intArg(args, 1);
+            numConcurrentWorkloadThreadsMax = intArg(args, 2);
+
+        } catch (IndexOutOfBoundsException e) {
+            //Just ignore this
+        }
+
+        logger.setUseParentHandlers(false);
+        FileHandler fh = new FileHandler(CertainWorkload.class.getName() + ".log");
+        logger.addHandler(fh);
+        Formatter datFormatter = new Formatter() {
+            @Override
+            public String format(LogRecord record) {
+                AggregateResult result = (AggregateResult) record.getParameters()[0];
+                StringBuffer sb = new StringBuffer(1000);
+                sb.append(result.getWorkers());
+                sb.append('\t');
+                sb.append(result.getThroughput());
+                sb.append('\t');
+                sb.append(result.getLatency());
+                sb.append('\t');
+                sb.append(result.getsuccRatio());
+                sb.append('\t');
+                sb.append(result.getcustomerXactRatio());
+                sb.append('\n');
+                return sb.toString();
+            }
+            public String getHead(Handler h) {
+                return "workers\tthroughput (succXact/s)\tlatency (s)\tsuccRatio\tcustomerXactRatio\n";
+            }
+        };
+        fh.setFormatter(datFormatter);
+        logger.setLevel(Level.ALL);
+        
+        runTests(numConcurrentWorkloadThreadsStep, numConcurrentWorkloadThreadsMax, numRunsPerStep);
+    }
+
+    public static void runTests(int step, int max, int runs) throws Exception {
+
+    }
+
+    public static void reportMetric(List<WorkerRunResult> workerRunResults) {
+
+    }
+}

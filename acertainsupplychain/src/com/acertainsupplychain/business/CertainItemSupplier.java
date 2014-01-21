@@ -35,10 +35,10 @@ public class CertainItemSupplier implements ItemSupplier {
     public CertainItemSupplier(Integer supplierId) {
         this.supplierId = supplierId;
         lock = new ReentrantReadWriteLock();
-        logger = Logger.getLogger("CertainItemSupplierLog");
+        logger = Logger.getLogger(CertainItemSupplier.class.getName());
         logger.setUseParentHandlers(false);
         try {
-            fh = new FileHandler("CertainItemSupplier" + this.supplierId
+            fh = new FileHandler(CertainItemSupplier.class.getName() + this.supplierId
                     + ".log");
             logger.addHandler(fh);
             logger.setLevel(Level.ALL);

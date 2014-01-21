@@ -35,9 +35,9 @@ public class CertainOrderManager implements OrderManager {
         try {
             workflowMap = new HashMap<Integer, List<Future<OrderStepResult>>>();
             workflowId = 0;
-            logger = Logger.getLogger("CertainOrderManagerLog");
+            logger = Logger.getLogger(CertainOrderManager.class.getName());
             logger.setUseParentHandlers(false);
-            fh = new FileHandler("CertainOrdermanager" + managerId + ".log");
+            fh = new FileHandler(CertainOrderManager.class.getName() + managerId + ".log");
             logger.addHandler(fh);
             logger.setLevel(Level.ALL);
             fh.setFormatter(new SupplyChainFormatter());

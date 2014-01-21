@@ -1,0 +1,30 @@
+package com.acertainsupplychain.server;
+
+
+public class ServerRunnable implements Runnable {
+    private String id;
+    private String port;
+    private Server servType;
+
+    public enum Server {
+        ITEMSUPPLIER_SERVER, ORDERMANAGER_SERVER;
+    }
+    
+    public ServerRunnable(String id, String port, Server servType) {
+        this.id = id;
+        this.port = port;
+        this.servType = servType;
+    }
+
+    public void run() {
+        String[] args = {id, port};
+        switch (servType) {
+        case ITEMSUPPLIER_SERVER:
+            ItemSupplierHTTPServer.main(args);
+            break;
+        case ORDERMANAGER_SERVER:
+            OrderManagerHTTPServer.main(args);
+            break;
+        }
+    }
+}

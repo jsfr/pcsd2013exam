@@ -53,7 +53,7 @@ public class OrderStepTask implements Callable<OrderStepResult> {
     }
 
     @Override
-    public OrderStepResult call() throws Exception {
+    public OrderStepResult call() {
         String dataSetXmlString = SupplyChainUtility
                 .serializeObjectToXMLString(request.getStep());
 
@@ -82,7 +82,12 @@ public class OrderStepTask implements Callable<OrderStepResult> {
                 fh.flush();
             }
         }
-
+        
+        try {
+            client.stop();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return retval;
     }
 }

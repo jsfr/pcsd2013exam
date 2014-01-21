@@ -1,0 +1,16 @@
+package com.acertainsupplychain.client.workload;
+
+public class WorkerRunResult {
+
+    public WorkerRunResult(int successfulInteractions,
+            long timeForRunsInNanoSecs, int numActualRuns,
+            int numSuccessfulOrderManagerInteraction,
+            int numOrderManagerInteraction) {
+        this.successfulInteraction = successfulInteractions;
+        this.timeForRunsInNanoSecs = timeForRunsInNanoSecs;
+        this.numActualRuns = numActualRuns;
+        this.numSuccessfulOrderManagerInteraction = numSuccessfulOrderManagerInteraction;
+        this.numOrderManagerInteraction = numOrderManagerInteraction;
+    }
+
+}

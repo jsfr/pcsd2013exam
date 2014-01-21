@@ -107,4 +107,12 @@ public class ItemSupplierHTTPProxy implements ItemSupplier {
         }
         return (List<ItemQuantity>) result.getResultList();
     }
+
+    public void stopClient() {
+        try {
+            this.client.stop();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

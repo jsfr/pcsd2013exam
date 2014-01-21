@@ -13,11 +13,12 @@ import com.acertainsupplychain.business.CertainOrderManager;
 import com.acertainsupplychain.business.ItemQuantity;
 import com.acertainsupplychain.business.OrderStep;
 import com.acertainsupplychain.client.OrderManagerHTTPProxy;
-import com.acertainsupplychain.client.tests.ServerRunnable.Server;
 import com.acertainsupplychain.exception.InvalidWorkflowException;
 import com.acertainsupplychain.exception.OrderProcessingException;
 import com.acertainsupplychain.interfaces.OrderManager;
 import com.acertainsupplychain.interfaces.OrderManager.StepStatus;
+import com.acertainsupplychain.server.ServerRunnable;
+import com.acertainsupplychain.server.ServerRunnable.Server;
 
 /**
  * Tests a single OrderManager. The test requires that two ItemSuppliers are

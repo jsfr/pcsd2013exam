@@ -1,9 +1,9 @@
 package com.acertainsupplychain.client;
 
 public final class SupplyChainClientConstants {
-    public static final int CLIENT_MAX_CONNECTION_ADDRESS = 200;
-    public static final int CLIENT_MAX_THREADSPOOL_THREADS = 250;
-    public static final int CLIENT_MAX_TIMEOUT_MILLISECS = 30000;
+    public static final int CLIENT_MAX_CONNECTION_ADDRESS = 10000;
+    public static final int CLIENT_MAX_THREADSPOOL_THREADS = 300;
+    public static final int CLIENT_MAX_TIMEOUT_MILLISECS = 15000;
 
     public static final String strERR_CLIENT_ENCODING = "CLIENT_ENCODING";
     public static final String strERR_CLIENT_REQUEST_EXCEPTION = "ERR_CLIENT_REQUEST_EXCEPTION";

@@ -1,0 +1,9 @@
+package com.acertainsupplychain.client.workload;
+
+public class Worker {
+
+    public Worker() {
+        
+    }
+    
+}

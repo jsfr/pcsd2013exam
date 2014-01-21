@@ -1,0 +1,36 @@
+package com.acertainsupplychain.client.workload;
+
+public class AggregateResult {
+
+    public AggregateResult(int numWorkers, double aggregateThroughput,
+            double averageLatency, double succRatio,
+            double orderManagerXactRatio) {
+        // TODO Auto-generated constructor stub
+    }
+
+    public Object getWorkers() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Object getThroughput() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Object getLatency() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Object getSuccRatio() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Object getOrderManagerXactRatio() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+}

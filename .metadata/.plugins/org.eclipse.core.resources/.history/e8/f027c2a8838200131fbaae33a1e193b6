@@ -1,0 +1,38 @@
+package com.acertainsupplychain.client.workload;
+
+import com.acertainsupplychain.interfaces.ItemSupplier;
+import com.acertainsupplychain.interfaces.OrderManager;
+
+public class WorkloadConfiguration {
+
+    public OrderManager getOrderManager() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public ItemSupplier getLocalClient() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public int getWarmUpRuns() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    public int getNumActualRuns() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    public int getStepsPerInteraction() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    public float getPercentLocalClientInteraction() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+}

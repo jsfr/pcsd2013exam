@@ -13,8 +13,9 @@
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="false" key="wholeword"/>
-		<item value="maxQuantity" key="selection"/>
+		<item value="Worker initialized" key="selection"/>
 		<list key="findhistory">
+			<item value="Worker initialized"/>
 			<item value="Integer.MAX_VALUE"/>
 			<item value="orderstepexec"/>
 			<item value="r.nextInt()"/>
@@ -22,7 +23,6 @@
 			<item value="r."/>
 			<item value="BookStoreResult"/>
 			<item value="BookStoreException"/>
-			<item value="BookStoreResponse"/>
 		</list>
 		<list key="replacehistory">
 			<item value="maxQuantity"/>

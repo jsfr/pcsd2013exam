@@ -1,0 +1,12 @@
+package com.acertainsupplychain.client.workload;
+
+public class WorkerRunResult {
+
+    public WorkerRunResult(int successfulInteractions,
+            long timeForRunsInNanoSecs, int numActualRuns,
+            int numSuccessfulOrderManagerInteraction,
+            int numOrderManagerInteraction) {
+        // TODO Auto-generated constructor stub
+    }
+
+}

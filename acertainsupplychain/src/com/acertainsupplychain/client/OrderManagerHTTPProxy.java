@@ -37,7 +37,7 @@ public class OrderManagerHTTPProxy implements OrderManager {
         client.setTimeout(SupplyChainClientConstants.CLIENT_MAX_TIMEOUT_MILLISECS);
         client.start();
     }
-    
+
     /**
      * Initializes the server address found in the set filePath.
      * 
@@ -45,7 +45,7 @@ public class OrderManagerHTTPProxy implements OrderManager {
      * @throws IOException
      */
     private void initializeServerAddress() throws FileNotFoundException,
-            IOException {
+    IOException {
         Properties props = new Properties();
         props.load(new FileInputStream(filePath));
 
@@ -99,5 +99,13 @@ public class OrderManagerHTTPProxy implements OrderManager {
         result = SupplyChainUtility.SendAndRecv(client, exchange);
 
         return result.getWorkflowId();
+    }
+
+    public void stopClient() {
+        try {
+            this.client.stop();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

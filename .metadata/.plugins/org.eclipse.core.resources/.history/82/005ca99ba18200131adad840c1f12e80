@@ -1,0 +1,198 @@
+package com.acertainsupplychain.client.workload;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.FileHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+
+import org.eclipse.jetty.server.Server;
+
+import com.acertainsupplychain.business.CertainItemSupplier;
+import com.acertainsupplychain.business.CertainOrderManager;
+import com.acertainsupplychain.client.ItemSupplierHTTPProxy;
+import com.acertainsupplychain.interfaces.ItemSupplier;
+import com.acertainsupplychain.interfaces.OrderManager;
+import com.acertainsupplychain.server.ItemSupplierHTTPMessageHandler;
+
+public class CertainWorkload {
+
+    private static Logger logger;
+    private static FileHandler fh;
+    private static Logger console = Logger.getLogger("console");
+    private static ItemSupplier supplier = new CertainItemSupplier(0);
+    private static ItemSupplierHTTPMessageHandler handler = new ItemSupplierHTTPMessageHandler(supplier);
+
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+
+        int numConcurrentWorkloadThreadsStep = 1;
+        int numConcurrentWorkloadThreadsMax = 10;
+        int numRunsPerStep = 5;
+
+        try {
+            numConcurrentWorkloadThreadsMax = Integer.parseInt(args[0]);
+            numRunsPerStep = Integer.parseInt(args[1]);
+            numConcurrentWorkloadThreadsMax = Integer.parseInt(args[2]);
+
+        } catch (IndexOutOfBoundsException e) {
+            //Just ignore this
+        }
+
+        logger = Logger.getLogger(CertainWorkload.class.getName());
+        logger.setUseParentHandlers(false);
+        try {
+            fh = new FileHandler(CertainWorkload.class.getName() + ".log");
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        logger.addHandler(fh);
+        Formatter datFormatter = new Formatter() {
+            @Override
+            public String format(LogRecord record) {
+                AggregateResult result = (AggregateResult) record.getParameters()[0];
+                StringBuffer sb = new StringBuffer(1000);
+                sb.append(result.getNumWorkers());
+                sb.append('\t');
+                sb.append(String.format("%.4f", result.getAggregateThroughput()));
+                sb.append('\t');
+                sb.append(String.format("%.4f", result.getAverageLatency()));
+                sb.append('\t');
+                sb.append(String.format("%.1f", result.getSuccRatio()));
+                sb.append('\t');
+                sb.append(String.format("%.2f", result.getOrderManagerXactRatio()));
+                sb.append('\n');
+                return sb.toString();
+            }
+            public String getHead(Handler h) {
+                return "workers\tthroughput (succXact/s)\tlatency (s)\tsuccRatio\tcustomerXactRatio\n";
+            }
+        };
+        fh.setFormatter(datFormatter);
+        logger.setLevel(Level.ALL);
+
+        //new Thread(new ServerRunnable("0", "8082", ServerRunnable.Server.ITEMSUPPLIER_SERVER)).start();
+
+        try {
+            runTests(numConcurrentWorkloadThreadsStep, numConcurrentWorkloadThreadsMax, numRunsPerStep);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void runTests(int step, int max, int runs) throws Exception {
+        List<WorkerRunResult> workerRunResults;
+        List<Future<WorkerRunResult>> runResults;
+        ExecutorService exec;
+        WorkloadConfiguration config;
+        Worker workerTask;
+        Server server;
+
+        for(int j = step; j < max+1; j = j + step) {
+            console.log(Level.INFO, "Running with " + j + " workers");
+            
+            
+            for (int k = 0; k < runs; k++) {
+                server = new Server(8082);
+                server.setHandler(handler);
+                server.start();
+                
+                //We want the same number of workers for all tests in this step
+                exec = Executors.newFixedThreadPool(j);
+                workerRunResults = new ArrayList<WorkerRunResult>();
+
+                runResults = new ArrayList<Future<WorkerRunResult>>();
+                List<ItemSupplierHTTPProxy> proxies = new ArrayList<ItemSupplierHTTPProxy>();
+
+                for (int i = 0; i < j; i++) {
+                    OrderManager orderManager = new CertainOrderManager(i);
+                    ItemSupplier localClient = new ItemSupplierHTTPProxy(0);
+                    proxies.add((ItemSupplierHTTPProxy) localClient);
+                    config = new WorkloadConfiguration(orderManager,
+                            localClient);
+                    workerTask = new Worker(config);
+
+                    // Keep the futures to wait for the result from the thread
+                    runResults.add(exec.submit(workerTask));
+                }
+
+
+                // Get the results from the threads using the futures returned
+                for (Future<WorkerRunResult> futureRunResult : runResults) {
+                    WorkerRunResult runResult = futureRunResult.get(); // blocking call
+                    workerRunResults.add(runResult);
+                }
+
+                // Kill all proxies to avoid old connections
+                for (ItemSupplierHTTPProxy p : proxies) {
+                    p.stopClient();
+                }
+
+                exec.shutdown();
+                if (exec.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+                    //do nothing
+                } else {
+                    System.out.println("Could not stop thread pool");
+                };
+
+                reportMetric(workerRunResults);
+                exec = null;
+                
+                server.stop();
+                server.join();
+            }
+            
+            
+            console.log(Level.INFO, "Done running with " + j + " workers");
+        }
+    }
+
+    public static void reportMetric(List<WorkerRunResult> workerRunResults) {
+        try {
+            double aggregateThroughput = 0D;
+            long totalLatency = 0L;
+            double averageLatency = 0D;
+            double succRatio = 0D;
+            double orderManagerXactRatio = 0D;
+            int numWorkers = workerRunResults.size();
+            double sumOrderManagerSuccInteractions = 0D;
+            double sumAllInteractions = 0D;
+            double sumAllSuccInteractions = 0D;
+
+            for(WorkerRunResult result : workerRunResults) {
+                int interactions = result.getSuccessfulInteraction();
+                double time = result.getTimeForRunsInNanoSecs();
+                aggregateThroughput += interactions/time;
+                totalLatency += time;
+                sumOrderManagerSuccInteractions += result.getNumSuccessfulOrderManagerInteraction();
+                sumAllInteractions += result.getNumActualRuns();
+                sumAllSuccInteractions += interactions;
+            }
+
+            aggregateThroughput = aggregateThroughput * 1E9; // change it to seconds
+            averageLatency = totalLatency / (numWorkers * 1E9);
+            orderManagerXactRatio = sumOrderManagerSuccInteractions / sumAllSuccInteractions;
+            succRatio = sumAllSuccInteractions / sumAllInteractions;
+
+            Object[] parameters = {new AggregateResult(numWorkers, aggregateThroughput, averageLatency, succRatio, orderManagerXactRatio)};
+            LogRecord record = new LogRecord(Level.INFO, "Added result");
+            record.setParameters(parameters);
+            logger.log(record);
+            fh.flush();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+    }
+}

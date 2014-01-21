@@ -1,0 +1,5 @@
+package com.acertainsupplychain.client.workload;
+
+public class CertainWorkload {
+
+}
