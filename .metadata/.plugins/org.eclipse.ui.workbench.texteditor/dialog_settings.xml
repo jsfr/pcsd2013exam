@@ -3,18 +3,19 @@
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
 		<item value="279" key="DIALOG_WIDTH"/>
 		<item value="191" key="DIALOG_Y_ORIGIN"/>
-		<item value="357" key="DIALOG_HEIGHT"/>
 		<item value="1264" key="DIALOG_X_ORIGIN"/>
+		<item value="355" key="DIALOG_HEIGHT"/>
 		<item value="1|ubuntu|10.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
 	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="true" key="wrap"/>
-		<item value="false" key="isRegEx"/>
 		<item value="false" key="casesensitive"/>
+		<item value="false" key="isRegEx"/>
 		<item value="false" key="incremental"/>
 		<item value="false" key="wholeword"/>
-		<item value="Worker initialized" key="selection"/>
+		<item value="retval" key="selection"/>
 		<list key="findhistory">
+			<item value="retval"/>
 			<item value="Worker initialized"/>
 			<item value="Integer.MAX_VALUE"/>
 			<item value="orderstepexec"/>
@@ -22,7 +23,6 @@
 			<item value="r.nextInt("/>
 			<item value="r."/>
 			<item value="BookStoreResult"/>
-			<item value="BookStoreException"/>
 		</list>
 		<list key="replacehistory">
 			<item value="maxQuantity"/>

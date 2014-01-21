@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
-<fullyQualifiedTypeName name="javax.servlet.http.HttpServletRequest"/>
 <fullyQualifiedTypeName name="java.io.Reader"/>
 <fullyQualifiedTypeName name="com.acertainsupplychain.utils.OrderStepResponse"/>
 <fullyQualifiedTypeName name="com.acertainsupplychain.utils.SupplyChainUtility"/>
@@ -60,4 +59,5 @@
 <fullyQualifiedTypeName name="java.lang.Double"/>
 <fullyQualifiedTypeName name="com.acertainsupplychain.server.ServerRunnable"/>
 <fullyQualifiedTypeName name="com.acertainsupplychain.server.ServerRunnable.Server"/>
+<fullyQualifiedTypeName name="java.lang.Thread"/>
 </qualifiedTypeNameHistroy>

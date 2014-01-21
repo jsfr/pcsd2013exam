@@ -52,7 +52,7 @@
 
 I assume we use a two-phase, multiway merge-sort algorithm which uses quick-sort to sort each sublist which fits in main memory (as described in \cite{chap10}). This means that $d$ will be the number of sublists we must split our data into to sort it all in main memory. Here I assume that $d$ is the combined number of sublists for $N_1$ and $N_2$.
 
-\paragraph{a)} % (fold)
+% \paragraph{a)} % (fold)
 
 % paragraph a_ (end)
 
@@ -72,7 +72,7 @@ If we assume that we only need to sort the keys, as these can be use to access t
 
 % paragraph b_ (end)
 
-\paragraph{c)} % (fold)
+% \paragraph{c)} % (fold)
 
 % paragraph c_ (end)
 
@@ -83,17 +83,34 @@ If we assume that we only need to sort the keys, as these can be use to access t
 
 \paragraph{a)} % (fold)
 
+The first hash-function has all every record of $R$ and $S$ as its domain. Potentially it has any record with the same fields as those in $R$ and $S$ as its domain, if we assume that it can be used for other records of the same type. The range of the function is $[1, k]$ as every record must map to one of the $k$ buckets corresponding to its relation.
+
+The second hash-function has $[1, k]$ as its domain as we only need to map the buckets from before, and since every $i$th bucket must match to the same processor. The range of the function is $[1, p]$ as every bucket must map to one of the $p$ processors.
 % paragraph a_ (end)
 
 \paragraph{b)} % (fold)
+
+Figure \ref{fig:hashjoin} explains the algorithm in general, schematically.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1\textwidth]{hashjoin.png}
+  \caption{A schematic explanation of the given hashjoin algorithm.}
+  \label{fig:hashjoin}
+\end{figure}
 
 % paragraph b_ (end)
 
 \paragraph{c)} % (fold)
 
+Under the assumption of uniform hashing we have that the average size of a bucket $R_i = \frac{B(R)}{k}$ and $S_i = \frac{B(S)}{k}$. Furthermore each processor will have an average of $\frac{k}{p}$ buckets from each relation mapped to it, which means that a one-pass should be enough as each processor can hold $O(k)$ pages. If we assume that the processors receive their buckets and do not themselves partition the relations, they must spend $\frac{k}{p} (\frac{B(R) + B(S)}{k})$ write their buckets to disk, the same amount to do the one-pass join, and finally the same amount when reading from disk and sending their results back. This means that every processor performs
+\[
+    3 \frac{k}{p} \left(\frac{B(R) + B(S)}{k}\right) = 3 \frac{B(R) + B(S)}{p}
+\]
+
 % paragraph c_ (end)
 
-\paragraph{d)} % (fold)
+% \paragraph{d)} % (fold)
 
 % paragraph d_ (end)
 
@@ -110,6 +127,12 @@ If we assume that we only need to sort the keys, as these can be use to access t
 
 \paragraph{Question 1} % (fold)
 \label{par:question_1}
+
+Using the proxies (\texttt{OrderManagerHTTPProxy} and \texttt{Item\-SupplierHTTPProxy}), which work as RPC stubs that communicate with the servers, \textit{exactly-once} semantics are effectively implemented between the clients, and OrderManagers/ItemSuppliers. Using just the proxies we have \textit{at-most-once} semantics, however as we also log every action we could at a later point implement recovery, meaning that we would be able to recover from a failure, giving us the \textit{exactly-once} semantics. Between the OrderManager and the ItemSupplier the \textit{at-most-once} semantics are implemented. Each step in the OrderManager runs in its own task (to make the workflow asynchronous) these try to contact the respective ItemSuppliers they need over HTTP. At the moment if a request times out or if the supplier is unavailable the request will fail, and the status of the step is set to failed meaning that is what a caller will see when trying asking for the status. Using the logging we could either retry failed steps at a later time, or we could change the tasks slightly so they retry if they get exceptions about timeouts or servers being unavailable.
+
+The asynchronous execution of workflows in the OrderManager has been implemented in the following way. The class \texttt{CertainOrderManager} utilizes an executor with a thread pool. Whenever a workflow is registered, each step is check to make sure that the OrderManager knows the supplier and if so the steps a wrapped in a request object. The new list of request objects are given to the executor which submits submits a callable \texttt{OrderStepTask} for each request to the thread pool and finally returns a list of future result objects to the OrderManager. These are saved in a map under the workflow id which, and the id is then returned to the caller. If a caller asks for a registered workflow id the OrderManager tries to get the result of each task, if it is done its result is added to the list of statuses (either successful or failed), otherwise a registered status is added to the list.
+
+Upon failure in either a OrderManager or ItemSupplier (\texttt{CertainOrder\-Manager} and \texttt{CertainItemSupplier}) an exception is thrown as dictated by the interfaces they implement. In the server handlers (\texttt{Order\-ManagerHTTPMessageHandler} and \texttt{ItemSupplierHTTPMesageHandler}) these exceptions are caught, as to avoid the entire server from crashing on a failure. The message handlers instead set the exception in the response it needs to send, and then sends this response back. In the proxies (\texttt{OrderManagerHTTPProxy} and \texttt{ItemSupplierHTTPProxy}) these exception are unpacked from the response and thrown again, as the proxies also implement the interfaces. The OrderManager when it processes steps however does not throw exceptions if it receives such a response from an ItemSupplier. Instead the task responsible for the given step simple sets a success flag in its response to false. In this way when a caller asks for the status of the workflow they see a failed status for that step. This stops the task or potentially the entire OrdermManager from crashing.
 
 % paragraph question_1 (end)
 
@@ -148,6 +171,12 @@ The ItemSupplier logs every step that it starts executing and whether the step w
 \paragraph{Question 4} % (fold)
 \label{par:question_4}
 
+To test the OrderManager the following strategy is used. Random steps are generated and combined into workflows. After a workflow is registered we enter a \textit{do-while} loop where we ask for the status of the workflow. As long as parts of the workflow are still only registered and not completed (either successfully or failed) we ask again. In this way we can query for the status of the workflow until the entire flow is complete. In the tests where we expect everything to work (thats where quantities are not negative, the item supplier exists and has all the item ids we ask to increase) no step must have the failed status. In the tests where something should go wrong we let all steps be failing steps, and then no step should have the successful status.
+
+To test that the methods of the ItemSupplier are atomic the following strategy is used. Two threads are created that both communicate with the same ItemSupplier. One constantly submits steps where all items have their quantities increased with one. The other thread constantly ask for all items quantities and check their the amount they have changed from the first request it did. If the methods are indeed atomic, it is expected that all items have increased with the same amount, since the last read. If they however are not atomic we would expect the thread which checks to get a dirty read at some point, and see different increments in the items quantities.
+
+To test error conditions of the components the following strategy was used. For the OrderManager and the ItemSupplier tests with clients are run, where wrong item ids, quantities and supplier ids are given. For the ItemSupplier all errors should result in an exception being thrown and this is thus the expected outcome the these tests. For the OrderManager a wrong supplier id or workflow id will result in an exception, whereas wrong item ids and quantities will result in a failed status of that step. Thus the latter does not have an exception as their expected outcome, but instead that their steps fail. Finally tests are done where both ends of the supply chain are checked. I.e. when a OrderManager supplies wrong item ids or negative quantities, it receives a failed status of that step, and the ItemSupplier does not the any quantities.
+
 % paragraph question_4 (end)
 
 % section testing (end)
@@ -157,6 +186,73 @@ The ItemSupplier logs every step that it starts executing and whether the step w
 
 \paragraph{Question 5} % (fold)
 \label{par:question_5}
+
+The experiment in general utilizes the same approach as was used in assignment 3 of the course. That is we run a thread pool with more and more threads all running a worker with has some task. The tasks either run an OrderManager interaction or they run a local ItemSupplier client interaction. Which they choose is random but controlled by a percentage/ratio in the configuration of the worker. Each worker does a series of warm up runs first and then afterwards do their actual runs which they measure. The measures from all workers in a thread pool are aggregated and computed on, to get the aggregate throughput, average latency, successful interactions and ratio of OrderManager interactions over all its runs. The two last are used to check that the workload mix is as expected and that we do not have to many failed interactions. This is the done for the same number of workers a number of times to average over the values.
+
+Specifically the workload mix used in the experiment was that 80\% of the interactions should be OrderManager interactions, as it is expected that it will mostly be the OrderManagers who order more of items and then occasionally will a client check what is ordered. Every OrderStep contains 3 steps, which is arbitrarily chosen and each step can other up to 1000 of each item, as we might expect wholesalers to order large quantities. Each ItemSupplier interaction can ask for a random number of its ids. Each worker does 10 warm up runs and then 30 actual runs. The number of workers run from 2 to 14 increasing with 2 every step. For each step 3 runs are done, over which the results are averaged.
+
+Preferably the number of runs should have been even higher, but on a single computer this gives some problems with exceptions from Jetty because it cannot shutdown threads and thus use up all available connections. Thus the number of runs was downscaled to successfully run the experiment.
+
+The experiment was run on a single computer with the following specifications:
+\begin{table}[H]
+\centering
+\begin{tabular}{rl}
+CPU: & Intel Core i7 @ 2.80 GHz \\
+RAM: & 8GB \\
+Operating System: & Arch Linux \\
+Hard drive: & ATA Samsung SSD 830 \\
+\end{tabular}
+\end{table}
+As the setup contains eight logical cores we might expect to see the throughput rise up until somewhere just around eight workers which would be the maximal number of workers that could run at the same time.
+
+After running the experiment the data outputted was as seen in Table \ref{tab:data}. Using these and averaging over each number of workers, the aggregated throughput and average latency have been plotted in Figure \ref{fig:throughput} and Figure \ref{fig:latency}.
+
+When looking at the graphs we see the throughput rise until it reaches eight concurrent workers, then fall again and on the last rise. In the same way the latency starts rising at eight workers, but drops again at 14. the fact that we see a change at eight workers might be attributed to the setup which has eight cores. However many other factors might play in. Especially the fact that Jetty seems to be having problems with shutting downs threads in its internal thread pool when it reaches just around eight to 10 workers. Another issue is the fact that the last data point shows a high throughput, this might indicate that the setup was disturbed at 10 and 12 workers (e.g. by the operating system working behind the scenes). Thus the results of the experiment are somewhat unclear, but it seems that the ItemSupplier scales well/linear up until around eight concurrent workers (remember that they all submit more than one OrderStep, meaning that the ItemSupplier handles more than eight requests at that point).
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabular}{ccccc}
+Workers & Throughput (succXact/s) & latency (s) & SuccRatio & orderManagerXactRatio \\ \hline
+2  & 28.7257  & 2.0949 & 1 & 0.85 \\
+2  & 31.4281  & 1.9123 & 1 & 0.8  \\
+2  & 31.6338  & 1.898  & 1 & 0.82 \\
+4  & 59.6614  & 2.014  & 1 & 0.83 \\
+4  & 65.9829  & 1.8226 & 1 & 0.79 \\
+4  & 61.81    & 1.9486 & 1 & 0.85 \\
+6  & 93.7409  & 1.9417 & 1 & 0.81 \\
+6  & 92.1887  & 1.9548 & 1 & 0.78 \\
+6  & 90.9345  & 1.9981 & 1 & 0.77 \\
+8  & 102.2635 & 2.3603 & 1 & 0.78 \\
+8  & 88.3375  & 2.7279 & 1 & 0.8  \\
+8  & 90.8956  & 2.6466 & 1 & 0.8  \\
+10 & 84.6169  & 3.5499 & 1 & 0.78 \\
+10 & 72.1851  & 4.1574 & 1 & 0.84 \\
+10 & 66.6472  & 4.5105 & 1 & 0.81 \\
+12 & 57.1896  & 6.2983 & 1 & 0.8  \\
+12 & 49.7696  & 7.2373 & 1 & 0.81 \\
+12 & 69.5267  & 5.1944 & 1 & 0.8  \\
+14 & 114.0111 & 3.6961 & 1 & 0.8  \\
+14 & 108.7776 & 3.8741 & 1 & 0.82 \\
+14 & 108.8745 & 3.8776 & 1 & 0.81 \\
+\end{tabular}
+\caption{The collected data from the experiment.}
+\label{tab:data}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1\textwidth]{chart_1.png}
+  \caption{The aggregated throughput when running a given number of workers.}
+  \label{fig:throughput}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=1\textwidth]{chart_2.png}
+  \caption{The average latency measured when running a given number of workers.}
+  \label{fig:latency}
+\end{figure}
 
 % paragraph question_5 (end)
 
@@ -173,4 +269,11 @@ The ItemSupplier logs every step that it starts executing and whether the step w
     Prentice Hall, 2002.
     ISBN: 0-13-031995-3
 \end{thebibliography}
+
+% \bibitem{chap11}
+%     H. Garcia-Molina, J. D. Ullman, J. Widom.
+%     Database Systems: The Complete Book.
+%     Chapter 15, pp. 713–774 (62 of 1119).
+%     Prentice Hall, 2002.
+%     ISBN: 0-13-031995-3
 \end{document}
