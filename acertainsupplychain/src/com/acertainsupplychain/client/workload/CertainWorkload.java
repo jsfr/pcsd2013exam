@@ -63,7 +63,7 @@ public class CertainWorkload {
             @Override
             public String format(LogRecord record) {
                 AggregateResult result = (AggregateResult) record.getParameters()[0];
-                StringBuffer sb = new StringBuffer(1000);
+                StringBuffer sb = new Strmv ingBuffer(1000);
                 sb.append(result.getNumWorkers());
                 sb.append('\t');
                 sb.append(String.format("%.4f", result.getAggregateThroughput()));

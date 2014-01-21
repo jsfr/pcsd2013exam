@@ -11,10 +11,10 @@
 	<item value="-1" key="org.eclipse.jdt.uiformatter_page.modify_dialog_tab_page.last_focus_index"/>
 	<item value="959" key="org.eclipse.jdt.uicleanup_pagemodify_dialog.preferred_width"/>
 	<item value="429" key="org.eclipse.jdt.uiformatter_pagemodify_dialog.preferred_x"/>
-	<item value="1063" key="org.eclipse.jdt.uiformatter_pagemodify_dialog.preferred_width"/>
-	<item value="110" key="org.eclipse.jdt.uiformatter_pagemodify_dialog.preferred_y"/>
-	<item value="1" key="org.eclipse.jdt.uiformatter_page.line_wrapping_tab_page.last_category_index"/>
 	<item value="8" key="org.eclipse.jdt.uiformatter_pagemodify_dialog.last_focus"/>
+	<item value="1" key="org.eclipse.jdt.uiformatter_page.line_wrapping_tab_page.last_category_index"/>
+	<item value="110" key="org.eclipse.jdt.uiformatter_pagemodify_dialog.preferred_y"/>
+	<item value="1063" key="org.eclipse.jdt.uiformatter_pagemodify_dialog.preferred_width"/>
 	<section name="OptionalMessageDialog.hide.">
 		<item value="true" key="org.eclipse.jdt.ui.typecomment.deprecated"/>
 	</section>
@@ -32,10 +32,10 @@
 			<item value="15" key="includeMask"/>
 			<item value="2" key="limitTo"/>
 			<item value="0" key="scope"/>
-			<item value="" key="javaElement"/>
 			<item value="System.out.println" key="pattern"/>
-			<item value="0" key="matchLocations"/>
+			<item value="" key="javaElement"/>
 			<item value="0" key="searchFor"/>
+			<item value="0" key="matchLocations"/>
 			<item value="false" key="isCaseSensitive"/>
 			<list key="workingSets">
 			</list>
@@ -44,8 +44,8 @@
 	<section name="DialogBounds_SuperInterfaceSelectionDialog">
 		<item value="364" key="DIALOG_WIDTH"/>
 		<item value="-35" key="DIALOG_Y_ORIGIN"/>
-		<item value="525" key="DIALOG_HEIGHT"/>
 		<item value="122" key="DIALOG_X_ORIGIN"/>
+		<item value="525" key="DIALOG_HEIGHT"/>
 		<item value="1|ubuntu|10.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
 	</section>
 	<section name="RefactoringWizard.preview">
@@ -58,8 +58,8 @@
 		<item value="0" key="index"/>
 	</section>
 	<section name="SourceActionDialog.methods">
-		<item value="false" key="Comments"/>
 		<item value="1" key="VisibilityModifier"/>
+		<item value="false" key="Comments"/>
 		<item value="false" key="SynchronizedModifier"/>
 		<item value="false" key="FinalModifier"/>
 	</section>
@@ -77,18 +77,6 @@
 		<item value="false" key="expanded2"/>
 		<item value="false" key="expanded1"/>
 		<item value="true" key="expanded0"/>
-	</section>
-	<section name="org.eclipse.jdt.internal.ui.dialogs.OpenTypeSelectionDialog2">
-		<item value="true" key="ShowStatusLine"/>
-		<item value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#x0A;&lt;workingSet workingSetName=&quot;&quot;/&gt;" key="WorkingSet"/>
-		<item value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#x0A;&lt;History/&gt;" key="History"/>
-		<section name="DialogBoundsSettings">
-			<item value="600" key="DIALOG_WIDTH"/>
-			<item value="196" key="DIALOG_Y_ORIGIN"/>
-			<item value="500" key="DIALOG_HEIGHT"/>
-			<item value="660" key="DIALOG_X_ORIGIN"/>
-			<item value="1|ubuntu|10.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
-		</section>
 	</section>
 	<section name="javadoc">
 		<item value="false" key="nodeprecatedlist"/>
@@ -112,6 +100,18 @@
 		<section name="projects">
 		</section>
 	</section>
+	<section name="org.eclipse.jdt.internal.ui.dialogs.OpenTypeSelectionDialog2">
+		<item value="true" key="ShowStatusLine"/>
+		<item value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#x0A;&lt;workingSet workingSetName=&quot;&quot;/&gt;" key="WorkingSet"/>
+		<item value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#x0A;&lt;History/&gt;" key="History"/>
+		<section name="DialogBoundsSettings">
+			<item value="600" key="DIALOG_WIDTH"/>
+			<item value="196" key="DIALOG_Y_ORIGIN"/>
+			<item value="660" key="DIALOG_X_ORIGIN"/>
+			<item value="500" key="DIALOG_HEIGHT"/>
+			<item value="1|ubuntu|10.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
+		</section>
+	</section>
 	<section name="NewPackageWizardPage">
 		<item value="false" key="create_package_info_java"/>
 	</section>
@@ -129,23 +129,23 @@
 	<section name="DialogBounds_GetterSetterTreeSelectionDialog">
 		<item value="606" key="DIALOG_WIDTH"/>
 		<item value="97" key="DIALOG_Y_ORIGIN"/>
-		<item value="649" key="DIALOG_HEIGHT"/>
 		<item value="657" key="DIALOG_X_ORIGIN"/>
+		<item value="649" key="DIALOG_HEIGHT"/>
 		<item value="1|ubuntu|10.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
 	</section>
-	<section name="NewClassWizardPage">
-		<item value="false" key="create_constructor"/>
-		<item value="true" key="create_unimplemented"/>
+	<section name="RenameInformationPopup">
 	</section>
 	<section name="org.eclipse.ltk.ui.refactoring.settings">
-		<item value="*" key="patterns"/>
-		<item value="false" key="updateQualifiedNames"/>
 		<item value="false" key="renameSubpackages"/>
+		<item value="false" key="updateQualifiedNames"/>
+		<item value="*" key="patterns"/>
 		<item value="1" key="updateSimilarElementsMatchStrategy"/>
 		<item value="false" key="updateTextualMatches"/>
 		<item value="false" key="updateSimilarElements"/>
 	</section>
-	<section name="RenameInformationPopup">
+	<section name="NewClassWizardPage">
+		<item value="false" key="create_constructor"/>
+		<item value="true" key="create_unimplemented"/>
 	</section>
 	<section name="AddGetterSetterDialog">
 		<item value="false" key="RemoveFinal"/>
@@ -154,8 +154,8 @@
 	<section name="JavadocWizardDialog">
 		<item value="604" key="DIALOG_WIDTH"/>
 		<item value="135" key="DIALOG_Y_ORIGIN"/>
-		<item value="591" key="DIALOG_HEIGHT"/>
 		<item value="658" key="DIALOG_X_ORIGIN"/>
+		<item value="591" key="DIALOG_HEIGHT"/>
 		<item value="1|ubuntu|10.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
 	</section>
 </section>
